@@ -3,6 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
 from yahooquery import Ticker
+import plotly.graph_objects as go
+
+pd.set_option('future.no_silent_downcasting', True)
 
 # Target Price 가져오기
 def get_financial_data(ticker_symbol):
@@ -41,59 +44,94 @@ def plot_stock_price(stock_data, ticker, financials_df):
 
 # Target Prices 그래프 그리기 함수
 def plot_target_prices(financial_data, ticker):
-    fig, ax = plt.subplots()
     target_labels = ['current', 'target-High', 'target-Low', 'target-Mean', 'target-Median']
     target_prices = [financial_data[label] for label in target_labels]
     
-    # 막대 그래프 그리기
-    bars = ax.bar(target_labels, target_prices, color=['gray', 'royalblue', 'royalblue', 'royalblue', 'royalblue'])
+    fig = go.Figure()
 
-    # 각 막대 위에 가격 표시
-    for bar, price in zip(bars, target_prices):
-        ax.text(bar.get_x() + bar.get_width()/2.0, bar.get_height(), f'{price:.2f}', ha='center', va='bottom')
+    # 막대 그래프 그리기
+    fig.add_trace(go.Bar(
+        x=target_labels,
+        y=target_prices,
+        marker_color=['gray', 'royalblue', 'royalblue', 'royalblue', 'royalblue'],
+        text=[f'{price:.2f}' for price in target_prices],
+        textposition='auto',
+        name='Target Prices'
+    ))
 
     # current 값을 y축 전체에 표시
     current_price = financial_data['current']
-    ax.axhline(y=current_price, color='red', linestyle='--', label=f'Current Price: {current_price:.2f}')
+    fig.add_hline(y=current_price, line_dash="dash", line_color="red", annotation_text=f'Current Price: {current_price:.2f}')
 
     # 그래프 제목과 레이블 설정
-    ax.set_title(f'{ticker} Target Prices')
-    ax.set_ylabel('Price')
-    ax.legend()
-    plt.grid(True, linestyle=":")
+    fig.update_layout(
+        title=f'{ticker} Target Prices',
+        yaxis_title='Price',
+        xaxis_title='',
+        showlegend=False
+    )
 
     return fig
 
 # 그래프 출력 함수
 def plot(item, key_name, color1, color2, ticker):
     growth = item.pct_change() * 100
+    growth = growth.infer_objects(copy=False)
 
-    fig, ax = plt.subplots()
-    width = 0.4
+    fig = go.Figure()
 
-    x = range(len(item))
+    # 막대 그래프 그리기
+    fig.add_trace(go.Bar(
+        x=item.index,
+        y=item,
+        marker_color=color1,
+        name=key_name,
+        text=[round(val, 2) for val in item],
+        textposition='outside'
+    ))
 
-    bars1 = ax.bar([p for p in x], item, width=width, label=key_name, color=color1)
-
-    for bar in bars1:
-        yval = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2.0, yval, round(yval, 2), va='bottom', color=color1)
-
+    # 변화율 화살표 및 텍스트 추가
     for i in range(1, len(item)):
-        ax.annotate('', xy=(i - 1, item.iloc[i - 1]), xytext=(i, item.iloc[i]),
-                    arrowprops=dict(arrowstyle='<-', color=color2, linestyle=":"))
-        ax.text(i - 0.5, (item.iloc[i - 1] + item.iloc[i]) / 2, f'{growth.iloc[i]:.1f}%', color=color2, ha='center')
+        # 화살표 추가
+        fig.add_annotation(
+            x=item.index[i],
+            y=item.iloc[i],
+            ax=item.index[i-1],
+            ay=item.iloc[i-1],
+            xref='x',
+            yref='y',
+            axref='x',
+            ayref='y',
+            showarrow=True,
+            arrowhead=2,
+            arrowsize=1,
+            arrowwidth=2,
+            arrowcolor=color2
+        )
 
-    ax.set_xticks([p for p in x])
-    ax.set_xticklabels(item.index.strftime('%Y-%m-%d'), rotation=45)
-    ax.set_xlabel('Date')
-    ax.set_ylabel(key_name)
-    ax.set_title(f'{ticker} : {key_name} over Time')
-    ax.legend(loc='lower right')
-    plt.grid(True, linestyle=":")
-    plt.tight_layout()
+        # 변화율 텍스트 추가 (화살표의 중간 아래에 위치)
+        midpoint_x = item.index[i-1] + (item.index[i] - item.index[i-1]) / 2
+        midpoint_y = (item.iloc[i] + item.iloc[i-1]) / 2
+        fig.add_annotation(
+            x=midpoint_x,
+            y=midpoint_y - (abs(item.iloc[i] - item.iloc[i-1]) * 0.1),  # 화살표의 중간 아래 위치
+            text=f'{growth.iloc[i]:.1f}%',
+            showarrow=False,
+            font=dict(color=color2)
+        )
+
+    # 그래프 레이아웃 설정
+    fig.update_layout(
+        title=f'{ticker} : {key_name} over Time',
+        xaxis_title='Date',
+        yaxis_title=key_name,
+        legend_title=key_name,
+        xaxis=dict(tickmode='array', tickvals=item.index, ticktext=item.index.strftime('%Y-%m-%d')),
+        template='plotly_white'
+    )
 
     return fig
+
 
 # Streamlit 앱 시작
 st.title("Stock Analyzer")
@@ -173,21 +211,21 @@ if st.button("Generate Plots"):
                     data_key = key.replace(" ", "_")
                     try:
                         if key_name == "Revenue":
-                            data = financials_df['Total Revenue'] / 1e6
+                            data = financials_df['Total Revenue'] #/ 1e6
                         elif key_name == "Operating Income":
-                            data = financials_df['Operating Income'] / 1e6
+                            data = financials_df['Operating Income'] #/ 1e6
                         elif key_name == "Operating Margin":
                             data = (financials_df['Operating Income'] / financials_df['Total Revenue']) * 100
                         elif key_name == "Net Income":
-                            data = financials_df['Net Income'] / 1e6
+                            data = financials_df['Net Income'] #/ 1e6
                         elif key_name == "CAPEX":
-                            data = -cashflow_df['Capital Expenditure'] / 1e6
+                            data = -cashflow_df['Capital Expenditure'] #/ 1e6
                         elif key_name == "Buyback":
-                            data = -cashflow_df['Repurchase Of Capital Stock'] / 1e6
+                            data = -cashflow_df['Repurchase Of Capital Stock'] #/ 1e6
                         elif key_name == "Dividend":
-                            data = -(cashflow_df['Repurchase Of Capital Stock'] + cashflow_df['Cash Dividends Paid']) / 1e6
+                            data = -(cashflow_df['Repurchase Of Capital Stock'] + cashflow_df['Cash Dividends Paid']) #/ 1e6
                         elif key_name == "Number of Shares":
-                            data = financials_df['Diluted Average Shares'] / 1e6
+                            data = financials_df['Diluted Average Shares'] #/ 1e6
                         elif key_name == "EPS":
                             data = financials_df['Diluted EPS']
                         elif key_name == "DPS":
@@ -199,10 +237,10 @@ if st.button("Generate Plots"):
                         elif key_name == "ROE":
                             data = (financials_df['Net Income'] / balance_sheet_df['Stockholders Equity']) * 100
                         elif key_name == "Owner Earning":
-                            data = (financials_df['Net Income'] + cashflow_df['Depreciation And Amortization'] + cashflow_df['Capital Expenditure']) / 1e6
+                            data = (financials_df['Net Income'] + cashflow_df['Depreciation And Amortization'] + cashflow_df['Capital Expenditure']) #/ 1e6
                         else:
                             continue
-                        st.pyplot(plot(data.dropna(), key_name, 'gray', 'black', ticker))
+                        st.plotly_chart(plot(data.dropna(), key_name, 'gray', 'black', ticker))
                     except KeyError:
                         st.error(f"Data for {key_name} not available.")
                         continue
@@ -210,4 +248,5 @@ if st.button("Generate Plots"):
             if metrics["Target Prices"]:
                 financial_data = get_financial_data(ticker)
                 st.subheader("Target Prices")
-                st.pyplot(plot_target_prices(financial_data, ticker))
+                target_prices_fig = plot_target_prices(financial_data, ticker)
+                st.plotly_chart(target_prices_fig)
