@@ -70,7 +70,12 @@ def app_single_stock():
         annual_return = (1 + b) ** 365.25 - 1
         
         # Annotation 추가
-        fig.add_annotation(x=non_zero_dividends['Date'].iloc[-1], y=non_zero_dividends['Fitted_Dividends'].iloc[-1], text=f"Annual Return: {annual_return:.2%}", showarrow=False)
+        x_middle = non_zero_dividends['Date'].iloc[len(non_zero_dividends) // 2]  # x의 중앙값
+        y_middle = non_zero_dividends['Fitted_Dividends'].iloc[len(non_zero_dividends) // 2]  # y의 중앙값
+        y_range = non_zero_dividends['Fitted_Dividends'].max() - non_zero_dividends['Fitted_Dividends'].min()
+        y_middle = y_middle + 0.1 * y_range
+
+        fig.add_annotation(x=x_middle, y=y_middle, text=f"Annual Return: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="black"), align='center')
         fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_layout(
@@ -89,7 +94,12 @@ def app_single_stock():
         fig.add_trace(go.Scatter(x=data['Date'], y=data['Close'], mode='lines', name='Actual Stock Price', line=dict(color='black')))
         fig.add_trace(go.Scatter(x=data['Date'], y=data['Fitted_Close'], mode='lines', name='Fitted Model', line=dict(color='red', dash='dot')))
         annual_return = (1 + b) ** 365.25 - 1
-        fig.add_annotation(x=data['Date'].iloc[-1], y=data['Fitted_Close'].iloc[-1], text=f"Annual Return: {annual_return:.2%}", showarrow=False)
+        x_middle = data['Date'].iloc[len(data) // 2]  # x의 중앙값
+        y_middle = data['Fitted_Close'].iloc[len(data) // 2]   # y의 중앙값
+        y_range = data['Fitted_Close'].max() - data['Fitted_Close'].min()
+        y_middle = y_middle + 0.1 * y_range
+
+        fig.add_annotation(x=x_middle, y=y_middle, text=f"Annual Return: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="black"), align='center')
         fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_layout(
