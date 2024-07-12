@@ -105,7 +105,7 @@ def app_financial_data():
         return fig
 
     # 그래프 출력 함수
-    def plot(item, key_name, color1, color2, ticker):
+    def plot(item, key_name, color1, color2, ticker, stock_data):
         growth = item.pct_change() * 100
         growth = growth.infer_objects(copy=False)
 
@@ -151,6 +151,16 @@ def app_financial_data():
                 font=dict(color=color2)
             )
 
+        # Add the secondary y-axis trace
+        fig.add_trace(go.Scatter(
+            x=stock_data.index,
+            y=stock_data['Close'],
+            mode='lines',
+            name='Close Price',
+            yaxis='y2',
+            line=dict(color='orange')
+        ))
+
         # 그래프 레이아웃 설정
         fig.update_layout(
             title=f'{ticker} : {key_name} over Time',
@@ -158,11 +168,16 @@ def app_financial_data():
             yaxis_title=key_name,
             legend_title=key_name,
             xaxis=dict(tickmode='array', tickvals=item.index, ticktext=item.index.strftime('%Y-%m-%d')),
+            yaxis2=dict(
+                title='Close Price',
+                overlaying='y',
+                side='right',
+                showgrid=False
+            ),
             template='plotly_white'
         )
 
         return fig
-
 
     # Streamlit 앱 시작
     st.title("Stock Analyzer")
@@ -271,7 +286,7 @@ def app_financial_data():
                                 data = (financials_df['Net Income'] + cashflow_df['Depreciation And Amortization'] + cashflow_df['Capital Expenditure']) #/ 1e6
                             else:
                                 continue
-                            st.plotly_chart(plot(data.dropna(), key_name, 'gray', 'black', ticker))
+                            st.plotly_chart(plot(data.dropna(), key_name, 'gray', 'black', ticker, stock_data))
                         except KeyError:
                             st.error(f"Data for {key_name} not available.")
                             continue
