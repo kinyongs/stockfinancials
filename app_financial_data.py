@@ -174,7 +174,13 @@ def app_financial_data():
                 side='right',
                 showgrid=False
             ),
-            template='plotly_white'
+            template='plotly_white',
+            legend=dict(
+            x=0,
+            y=0.2,
+            xanchor='left',
+            yanchor='top'
+            )
         )
 
         return fig
