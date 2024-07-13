@@ -175,7 +175,6 @@ def app_single_stock():
             st.session_state.end_date = pd.to_datetime(end_date)
             st.session_state.filtered_data = st.session_state.stock_data[(st.session_state.stock_data['Date'] >= st.session_state.start_date) & (st.session_state.stock_data['Date'] <= st.session_state.end_date)]
 
-            st.session_state.filtered_data['Dividends'] = st.session_state.filtered_data['Dividends']
             a, b = annualized_return(st.session_state.filtered_data, 'Close')
 
             price_plot = plot_stock_data(st.session_state.filtered_data, a, b, ticker)
