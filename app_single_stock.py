@@ -20,7 +20,6 @@ def app_single_stock():
         unsafe_allow_html=True
     )
     
-    
     # Yahoo Finance에서 주식 데이터 가져오기
     def get_stock_data(ticker):
         stock = yf.Ticker(ticker)
@@ -52,6 +51,11 @@ def app_single_stock():
     def plot_dividends_and_cagr(data):
         # 배당금이 0이 아닌 값에 대해 CAGR curve fitting
         non_zero_dividends = data[data['Dividends'] > 0]
+
+        if non_zero_dividends.empty:
+            st.warning("No dividend data available for the entered ticker symbol.")
+            return None
+        
         elapsed_days = (non_zero_dividends['Date'] - non_zero_dividends['Date'].min()).dt.days
         initial_a = non_zero_dividends['Dividends'].iloc[0]
         initial_b = 0.0001
@@ -86,7 +90,6 @@ def app_single_stock():
         )
         
         return fig
-
 
     # 주가 데이터 시각화
     def plot_stock_data(data, a, b, ticker):
@@ -149,12 +152,15 @@ def app_single_stock():
                 # 주가 및 drawdown 그래프 표시
                 price_plot = plot_stock_data(stock_data, a, b, ticker)
                 drawdown_plot = plot_drawdown(stock_data, ticker)
-                dividend_plot = plot_dividends_and_cagr(stock_data)
 
                 # 주가 및 drawdown 그래프 표시
                 st.plotly_chart(price_plot, use_container_width=True)
                 st.plotly_chart(drawdown_plot, use_container_width=True)
-                st.plotly_chart(dividend_plot, use_container_width=True)
+
+                # 배당금 및 CAGR 그래프 표시
+                dividend_plot = plot_dividends_and_cagr(stock_data)
+                if dividend_plot:
+                    st.plotly_chart(dividend_plot, use_container_width=True)
 
         except Exception as e:
             st.error(f"An error occurred: {e}. Please check the ticker symbol and try again.")
