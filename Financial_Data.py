@@ -4,18 +4,18 @@ from app_financial_data import app_financial_data as financial_data_app
 from app_home import app as home_app
 
 PAGES = {
-    "홈": home_app,
-    "개별 주식 분석": single_stock_app,
-    "금융 데이터 분석": financial_data_app
+    "Home": home_app,
+    "Single Stock Analysis": single_stock_app,
+    "Financial Data Analysis": financial_data_app
 }
 
 if 'page' not in st.session_state:
-    st.session_state.page = "홈"
+    st.session_state.page = "Home"
 
 def set_page(page):
     st.session_state.page = page
 
-# 사이드바와 상단 네비게이션 바를 스타일링하기 위한 커스텀 CSS
+# Custom CSS to style the sidebar and add a top navigation bar
 st.markdown("""
     <style>
     .top-nav {
@@ -41,10 +41,10 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 상단 네비게이션 바 추가
+# Add top navigation bar
 st.markdown('<div class="top-nav">', unsafe_allow_html=True)
 
-nav_buttons = ["홈", "개별 주식 분석", "금융 데이터 분석"]
+nav_buttons = ["Home", "Single Stock Analysis", "Financial Data Analysis"]
 
 for page in nav_buttons:
     if st.button(page):
@@ -52,8 +52,8 @@ for page in nav_buttons:
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-st.sidebar.title('네비게이션')
-selection = st.sidebar.radio("이동", list(PAGES.keys()), index=list(PAGES.keys()).index(st.session_state.page))
+st.sidebar.title('Navigation')
+selection = st.sidebar.radio("Go to", list(PAGES.keys()), index=list(PAGES.keys()).index(st.session_state.page))
 
 page = PAGES[selection]
 page()

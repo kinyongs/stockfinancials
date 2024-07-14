@@ -4,7 +4,7 @@ import streamlit as st
 
 def app():
 
-    # 배경 색깔 지정
+    #background 색깔 지정
     st.markdown(
         """
         <style>
@@ -16,11 +16,11 @@ def app():
     )
 
     
-    st.title('홈')
-    st.write('홈 페이지에 오신 것을 환영합니다. 사이드바를 사용하여 다른 페이지로 이동하세요.')
+    st.title('Home')
+    st.write('Welcome to the Home page. Use the sidebar to navigate to different pages.')
 
-    st.header('단일 주식 분석')
-    st.write('단일 주식 분석 페이지는 주식 및 ETF 가격, 최대 낙폭, 배당금에 대한 정보를 제공합니다. 이러한 자산에 대한 연평균 상승 추세선을 계산합니다.')
+    st.header('Single Stock Analysis')
+    st.write('The Single Stock Analysis page provides information on stock and ETF prices, drawdown, and dividends. It calculates the annual average uptrend line for these assets.')
 
-    st.header('재무 데이터 분석')
-    st.write('재무 데이터 분석 페이지는 기업의 재무 정보를 제공합니다. 또한 소유자 이익 및 목표 주가를 포함합니다.')
+    st.header('Financial Data Analysis')
+    st.write('The Financial Data Analysis page provides financial information of companies. It also includes Owner Earnings and Target Price.')

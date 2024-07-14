@@ -45,7 +45,7 @@ def app_single_stock():
     def plot_dividends_and_cagr(data):
         non_zero_dividends = data[data['Dividends'] > 0]
         if non_zero_dividends.empty:
-            st.warning("입력된 티커 기호에 대한 배당금 데이터가 없습니다.")
+            st.warning("No dividend data available for the entered ticker symbol.")
             return None
 
         elapsed_days = (non_zero_dividends['Date'] - non_zero_dividends['Date'].min()).dt.days
@@ -56,8 +56,8 @@ def app_single_stock():
         non_zero_dividends['Fitted_Dividends'] = cagr(elapsed_days, a, b)
 
         fig = go.Figure()
-        fig.add_trace(go.Bar(x=data['Date'], y=data['Dividends'], name='배당금'))
-        fig.add_trace(go.Scatter(x=non_zero_dividends['Date'], y=non_zero_dividends['Fitted_Dividends'], mode='lines', name='CAGR 피팅', line=dict(color='red', dash='dot')))
+        fig.add_trace(go.Bar(x=data['Date'], y=data['Dividends'], name='Dividends'))
+        fig.add_trace(go.Scatter(x=non_zero_dividends['Date'], y=non_zero_dividends['Fitted_Dividends'], mode='lines', name='CAGR Fit', line=dict(color='red', dash='dot')))
         annual_return = (1 + b) ** 365.25 - 1
 
         x_middle = non_zero_dividends['Date'].iloc[len(non_zero_dividends) // 2]
@@ -65,21 +65,21 @@ def app_single_stock():
         y_range = non_zero_dividends['Fitted_Dividends'].max() - non_zero_dividends['Fitted_Dividends'].min()
         y_middle = y_middle + 0.1 * y_range
 
-        fig.add_annotation(x=x_middle, y=y_middle, text=f"연간 수익률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="black"), align='center')
+        fig.add_annotation(x=x_middle, y=y_middle, text=f"Annual Return: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="black"), align='center')
         fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_layout(
-            title="배당금 및 CAGR 피팅",
-            xaxis_title="날짜",
-            yaxis_title="배당금",
+            title="Dividends and CAGR Fit",
+            xaxis_title="Date",
+            yaxis_title="Dividends",
             legend=dict(x=0, y=1, xanchor='left', yanchor='top')
         )
         return fig
 
     def plot_stock_data(data, a, b, ticker):
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=data['Date'], y=data['Close'], mode='lines', name='실제 주가', line=dict(color='black')))
-        fig.add_trace(go.Scatter(x=data['Date'], y=data['Fitted_Close'], mode='lines', name='모델 피팅', line=dict(color='red', dash='dot')))
+        fig.add_trace(go.Scatter(x=data['Date'], y=data['Close'], mode='lines', name='Actual Stock Price', line=dict(color='black')))
+        fig.add_trace(go.Scatter(x=data['Date'], y=data['Fitted_Close'], mode='lines', name='Fitted Model', line=dict(color='red', dash='dot')))
         annual_return = (1 + b) ** 365.25 - 1
 
         x_middle = data['Date'].iloc[len(data) // 2]
@@ -87,13 +87,13 @@ def app_single_stock():
         y_range = data['Fitted_Close'].max() - data['Fitted_Close'].min()
         y_middle = y_middle + 0.1 * y_range
 
-        fig.add_annotation(x=x_middle, y=y_middle, text=f"연간 수익률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="black"), align='center')
+        fig.add_annotation(x=x_middle, y=y_middle, text=f"Annual Return: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="black"), align='center')
         fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_layout(
-            title=f"{ticker} 주가",
-            xaxis_title="날짜",
-            yaxis_title="가격 (USD)",
+            title=f"{ticker} Stock Price",
+            xaxis_title="Date",
+            yaxis_title="Price (USD)",
             legend=dict(x=0, y=1, xanchor='left', yanchor='top')
         )
         return fig
@@ -101,22 +101,22 @@ def app_single_stock():
     def plot_drawdown(data, ticker):
         drawdown_data = calculate_drawdown(data)
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=drawdown_data['Date'], y=drawdown_data['Drawdown'] * 100, mode='lines', name='최대 낙폭', line=dict(color='gray', width=2)))
-        fig.add_trace(go.Scatter(x=drawdown_data['Date'], y=drawdown_data['Drawdown'] * 100, mode='lines', name='최대 낙폭', fill='tozeroy', line=dict(color='gray', width=1)))
+        fig.add_trace(go.Scatter(x=drawdown_data['Date'], y=drawdown_data['Drawdown'] * 100, mode='lines', name='Drawdown', line=dict(color='gray', width=2)))
+        fig.add_trace(go.Scatter(x=drawdown_data['Date'], y=drawdown_data['Drawdown'] * 100, mode='lines', name='Drawdown', fill='tozeroy', line=dict(color='gray', width=1)))
         fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_layout(
-            title=f"{ticker} 최대 낙폭",
-            xaxis_title="날짜",
-            yaxis_title="최대 낙폭 (%)",
+            title=f"{ticker} Drawdown",
+            xaxis_title="Date",
+            yaxis_title="Drawdown (%)",
             showlegend=False
         )
         return fig
 
-    st.title("주가 시각화 및 분석")
+    st.title("Stock Price Visualization and Analysis")
 
-    ticker = st.text_input("주식 티커 기호를 입력하세요:")
-    submit_button = st.button('제출')
+    ticker = st.text_input("Enter a stock ticker symbol:")
+    submit_button = st.button('Submit')
 
     if 'stock_data' not in st.session_state:
         st.session_state.stock_data = None
@@ -133,7 +133,7 @@ def app_single_stock():
         try:
             stock_data = get_stock_data(ticker)
             if stock_data.empty:
-                st.error("입력된 티커 기호에 대한 데이터를 찾을 수 없습니다. 기호를 확인하고 다시 시도하세요.")
+                st.error("No data found for the entered ticker symbol. Please check the symbol and try again.")
             else:
                 st.session_state.stock_data = stock_data
                 st.session_state.filtered_data = stock_data
@@ -154,21 +154,21 @@ def app_single_stock():
                 if dividend_plot:
                     st.plotly_chart(dividend_plot, use_container_width=True)
         except Exception as e:
-            st.error(f"오류가 발생했습니다: {e}. 티커 기호를 확인하고 다시 시도하세요.")
+            st.error(f"An error occurred: {e}. Please check the ticker symbol and try again.")
 
     if st.session_state.initial_submit and st.session_state.stock_data is not None:
         min_date = st.session_state.stock_data['Date'].min()
         max_date = st.session_state.stock_data['Date'].max()
 
         start_date, end_date = st.slider(
-            "날짜 범위를 선택하세요",
+            "Select date range",
             min_value=min_date.to_pydatetime(),
             max_value=max_date.to_pydatetime(),
             value=(st.session_state.start_date.to_pydatetime(), st.session_state.end_date.to_pydatetime()),
             format="YYYY-MM-DD"
         )
 
-        submit_range_button = st.button('날짜 범위 제출')
+        submit_range_button = st.button('Submit Date Range')
 
         if submit_range_button:
             st.session_state.start_date = pd.to_datetime(start_date)
