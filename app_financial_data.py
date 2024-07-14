@@ -6,10 +6,9 @@ from yahooquery import Ticker
 import plotly.graph_objects as go
 
 def app_financial_data():
-
     pd.set_option('future.no_silent_downcasting', True)
 
-    #background 색깔 지정
+    # 배경 색깔 지정
     st.markdown(
         """
         <style>
@@ -20,7 +19,7 @@ def app_financial_data():
         unsafe_allow_html=True
     )
 
-    # Target Price 가져오기
+    # 금융 데이터 가져오기
     def get_financial_data(ticker_symbol):
         ticker = Ticker(ticker_symbol)
         financial_data = ticker.financial_data[ticker_symbol]
@@ -43,7 +42,7 @@ def app_financial_data():
             x=stock_data.index, 
             y=stock_data['Close'], 
             mode='lines', 
-            name='Close Price', 
+            name='종가', 
             line=dict(color='darkblue')
         ))
         
@@ -64,16 +63,16 @@ def app_financial_data():
             )
 
         fig.update_layout(
-            title=f'{ticker} Stock Price Over Time',
-            xaxis_title='Date',
-            yaxis_title='Stock Price',
-            legend_title='Legend',
+            title=f'{ticker} 주가 변화',
+            xaxis_title='날짜',
+            yaxis_title='주가',
+            legend_title='범례',
             template='plotly_white'
         )
 
         return fig
 
-    # Target Prices 그래프 그리기 함수
+    # 목표 가격 그래프 그리기
     def plot_target_prices(financial_data, ticker):
         target_labels = ['current', 'target-High', 'target-Low', 'target-Mean', 'target-Median']
         target_prices = [financial_data[label] for label in target_labels]
@@ -87,17 +86,17 @@ def app_financial_data():
             marker_color=['gray', 'royalblue', 'royalblue', 'royalblue', 'royalblue'],
             text=[f'{price:.2f}' for price in target_prices],
             textposition='auto',
-            name='Target Prices'
+            name='목표 가격'
         ))
 
-        # current 값을 y축 전체에 표시
+        # 현재 가격을 y축에 표시
         current_price = financial_data['current']
-        fig.add_hline(y=current_price, line_dash="dash", line_color="red", annotation_text=f'Current Price: {current_price:.2f}')
+        fig.add_hline(y=current_price, line_dash="dash", line_color="red", annotation_text=f'현재 가격: {current_price:.2f}')
 
         # 그래프 제목과 레이블 설정
         fig.update_layout(
-            title=f'{ticker} Target Prices',
-            yaxis_title='Price',
+            title=f'{ticker} 목표 가격',
+            yaxis_title='가격',
             xaxis_title='',
             showlegend=False
         )
@@ -151,25 +150,25 @@ def app_financial_data():
                 font=dict(color=color2)
             )
 
-        # Add the secondary y-axis trace
+        # 보조 y축에 주가 추가
         fig.add_trace(go.Scatter(
             x=stock_data.index,
             y=stock_data['Close'],
             mode='lines',
-            name='Close Price',
+            name='종가',
             yaxis='y2',
             line=dict(color='orange')
         ))
 
         # 그래프 레이아웃 설정
         fig.update_layout(
-            title=f'{ticker} : {key_name} over Time',
-            xaxis_title='Date',
+            title=f'{ticker} : {key_name} 변화',
+            xaxis_title='날짜',
             yaxis_title=key_name,
             legend_title=key_name,
             xaxis=dict(tickmode='array', tickvals=item.index, ticktext=item.index.strftime('%Y-%m-%d')),
             yaxis2=dict(
-                title='Close Price',
+                title='종가',
                 overlaying='y',
                 side='right',
                 showgrid=False
@@ -186,44 +185,44 @@ def app_financial_data():
         return fig
 
     # Streamlit 앱 시작
-    st.title("Stock Analyzer")
+    st.title("주식 분석기")
 
-    # Ticker 입력과 기간 선택
+    # 티커 입력과 기간 선택
     col1, col2 = st.columns([2, 1])
     with col1:
-        ticker = st.text_input("Enter Stock Ticker:")
+        ticker = st.text_input("주식 티커를 입력하세요:")
     with col2:
-        period = st.radio("Select Period:", ("Quarterly", "Annually"))
+        period = st.radio("기간을 선택하세요:", ("분기별", "연간"))
 
     # 메트릭 선택
-    st.subheader("Select Metrics to Display")
+    st.subheader("표시할 메트릭 선택")
     cols = st.columns(4)
     metrics = {
-        "Revenue": cols[0].checkbox('Revenue'),
-        "Operating Income": cols[0].checkbox("Operating Income"),
-        "Operating Margin": cols[0].checkbox("Operating Margin"),
-        "Net Income": cols[0].checkbox("Net Income"),
+        "매출": cols[0].checkbox('매출'),
+        "영업 이익": cols[0].checkbox("영업 이익"),
+        "영업 마진": cols[0].checkbox("영업 마진"),
+        "순이익": cols[0].checkbox("순이익"),
         "CAPEX": cols[1].checkbox("CAPEX"),
-        "Buyback": cols[1].checkbox('Buyback'),
-        "Dividend": cols[1].checkbox('Dividend'),
-        "Number of Shares": cols[1].checkbox('Number of Shares'),
+        "자사주 매입": cols[1].checkbox('자사주 매입'),
+        "배당금": cols[1].checkbox('배당금'),
+        "주식 수": cols[1].checkbox('주식 수'),
         "EPS": cols[2].checkbox('EPS'),
         "DPS": cols[2].checkbox('DPS'),
         "PER": cols[2].checkbox('PER'),
         "PBR": cols[2].checkbox('PBR'),
         "ROE": cols[2].checkbox('ROE'),
         "Owner Earning": cols[3].checkbox('Owner Earning'),
-        "Target Prices": cols[3].checkbox("Target Prices")
+        "목표 가격": cols[3].checkbox("목표 가격")
     }
 
-    if st.button("Generate Plots"):
+    if st.button("그래프 생성"):
         if not ticker:
-            st.warning("Please enter a stock ticker.")
+            st.warning("주식 티커를 입력하세요.")
         else:
             stock = yf.Ticker(ticker)
 
             try:
-                if period == "Quarterly":
+                if period == "분기별":
                     financials = stock.quarterly_financials
                     cashflow = stock.quarterly_cashflow
                     balance_sheet = stock.quarterly_balance_sheet
@@ -232,13 +231,13 @@ def app_financial_data():
                     cashflow = stock.cashflow
                     balance_sheet = stock.balance_sheet
             except Exception as e:
-                st.error(f"Failed to retrieve financial data: {e}")
+                st.error(f"금융 데이터를 가져오는데 실패했습니다: {e}")
                 financials = pd.DataFrame()
                 cashflow = pd.DataFrame()
                 balance_sheet = pd.DataFrame()
 
             if financials.empty or cashflow.empty or balance_sheet.empty:
-                st.error("Failed to retrieve financial data. Please check the ticker symbol.")
+                st.error("금융 데이터를 가져오는데 실패했습니다. 티커 기호를 확인하세요.")
             else:
                 financials_df = financials.T.sort_index()
                 cashflow_df = cashflow.T.sort_index()
@@ -248,10 +247,10 @@ def app_financial_data():
                 stock_data = yf.download(ticker, start=oldest_date, end="2026-01-01")
                 stock_data['Close'] = stock_data['Close'].ffill()
 
-                financials_df['Stock Price'] = financials_df.index.to_series().apply(
+                financials_df['주가'] = financials_df.index.to_series().apply(
                     lambda date: stock_data.loc[stock_data.index[stock_data.index.get_indexer([date], method='ffill')[0]], 'Close']
                 )
-                balance_sheet_df['Stock Price'] = balance_sheet_df.index.to_series().apply(
+                balance_sheet_df['주가'] = balance_sheet_df.index.to_series().apply(
                     lambda date: stock_data.loc[stock_data.index[stock_data.index.get_indexer([date], method='ffill')[0]], 'Close']
                 )
 
@@ -262,30 +261,30 @@ def app_financial_data():
                         key_name = key
                         data_key = key.replace(" ", "_")
                         try:
-                            if key_name == "Revenue":
+                            if key_name == "매출":
                                 data = financials_df['Total Revenue'] #/ 1e6
-                            elif key_name == "Operating Income":
+                            elif key_name == "영업 이익":
                                 data = financials_df['Operating Income'] #/ 1e6
-                            elif key_name == "Operating Margin":
+                            elif key_name == "영업 마진":
                                 data = (financials_df['Operating Income'] / financials_df['Total Revenue']) * 100
-                            elif key_name == "Net Income":
+                            elif key_name == "순이익":
                                 data = financials_df['Net Income'] #/ 1e6
                             elif key_name == "CAPEX":
                                 data = -cashflow_df['Capital Expenditure'] #/ 1e6
-                            elif key_name == "Buyback":
+                            elif key_name == "자사주 매입":
                                 data = -cashflow_df['Repurchase Of Capital Stock'] #/ 1e6
-                            elif key_name == "Dividend":
+                            elif key_name == "배당금":
                                 data = -(cashflow_df['Repurchase Of Capital Stock'] + cashflow_df['Cash Dividends Paid']) #/ 1e6
-                            elif key_name == "Number of Shares":
+                            elif key_name == "주식 수":
                                 data = financials_df['Diluted Average Shares'] #/ 1e6
                             elif key_name == "EPS":
                                 data = financials_df['Diluted EPS']
                             elif key_name == "DPS":
                                 data = -cashflow_df['Cash Dividends Paid'] / financials_df['Diluted Average Shares']
                             elif key_name == "PER":
-                                data = financials_df['Stock Price'] / financials_df['Diluted EPS']
+                                data = financials_df['주가'] / financials_df['Diluted EPS']
                             elif key_name == "PBR":
-                                data = balance_sheet_df['Stock Price'] / (balance_sheet_df['Stockholders Equity'] / financials_df['Diluted Average Shares'])
+                                data = balance_sheet_df['주가'] / (balance_sheet_df['Stockholders Equity'] / financials_df['Diluted Average Shares'])
                             elif key_name == "ROE":
                                 data = (financials_df['Net Income'] / balance_sheet_df['Stockholders Equity']) * 100
                             elif key_name == "Owner Earning":
@@ -294,11 +293,11 @@ def app_financial_data():
                                 continue
                             st.plotly_chart(plot(data.dropna(), key_name, 'gray', 'black', ticker, stock_data))
                         except KeyError:
-                            st.error(f"Data for {key_name} not available.")
+                            st.error(f"{key_name}에 대한 데이터가 없습니다.")
                             continue
 
-                if metrics["Target Prices"]:
+                if metrics["목표 가격"]:
                     financial_data = get_financial_data(ticker)
-                    st.subheader("Target Prices")
+                    st.subheader("목표 가격")
                     target_prices_fig = plot_target_prices(financial_data, ticker)
                     st.plotly_chart(target_prices_fig)
