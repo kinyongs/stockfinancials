@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from yahooquery import Ticker
 import plotly.graph_objects as go
+import numpy as np
 
 def app_financial_data():
     pd.set_option('future.no_silent_downcasting', True)
