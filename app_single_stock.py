@@ -116,6 +116,26 @@ def app_single_stock():
     st.title("개별 주식 분석")
 
     ticker = st.text_input("주식 티커 기호를 입력하세요:")
+
+    with st.expander("예시 티커 보기"):
+        st.markdown(
+            """
+            <table>
+                <tr><th>지수/종목</th><th>티커</th><th>비고</th></tr>
+                <tr><td>다우존스</td><td>^DJI</td><td>지수</td></tr>
+                <tr><td>S&P500</td><td>^GSPC</td><td>지수</td></tr>
+                <tr><td>나스닥100</td><td>^NDX</td><td>지수</td></tr>
+                <tr><td>SPY ETF</td><td>SPY</td><td>ETF</td></tr>
+                <tr><td>마이크로소프트</td><td>MSFT</td><td>미국주식</td></tr>
+                <tr><td>애플</td><td>APPL</td><td>미국주식</td></tr>
+                <tr><td>삼성전자</td><td>005930.KS</td><td>코스피</td></tr>
+                <tr><td>리노공업</td><td>058470.KQ</td><td>코스닥</td></tr>
+            </table>
+            """,
+            unsafe_allow_html=True
+        )
+
+
     submit_button = st.button('show')
 
     if 'stock_data' not in st.session_state:
@@ -168,7 +188,7 @@ def app_single_stock():
             format="YYYY-MM-DD"
         )
 
-        submit_range_button = st.button('날짜 범위 제출')
+        submit_range_button = st.button('날짜 범위 분석')
 
         if submit_range_button:
             st.session_state.start_date = pd.to_datetime(start_date)
