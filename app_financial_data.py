@@ -155,7 +155,7 @@ def app_financial_data():
             midpoint_y = (item.iloc[i] + item.iloc[i-1]) / 2
             fig.add_annotation(
                 x=midpoint_x,
-                y=midpoint_y - (abs(item.iloc[i] - item.iloc[i-1]) * 0.1),  # 화살표의 중간 아래 위치
+                y=midpoint_y + (abs(item.iloc[i] - item.iloc[i-1]) * 0.4),  # 화살표의 중간 아래 위치
                 text=f'{growth.iloc[i]:.1f}%',
                 showarrow=False,
                 font=dict(color=color2)
@@ -196,7 +196,7 @@ def app_financial_data():
         return fig
 
     # Streamlit 앱 시작
-    st.title("주식 분석기")
+    st.title("기업 재무 데이터")
 
     # 티커 입력과 기간 선택
     col1, col2 = st.columns([2, 1])
@@ -226,7 +226,7 @@ def app_financial_data():
         "목표 가격": cols[3].checkbox("목표 가격")
     }
 
-    if st.button("그래프 생성"):
+    if st.button("Show"):
         if not ticker:
             st.warning("주식 티커를 입력하세요.")
         else:

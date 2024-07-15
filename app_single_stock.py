@@ -63,9 +63,9 @@ def app_single_stock():
         x_middle = non_zero_dividends['Date'].iloc[len(non_zero_dividends) // 2]
         y_middle = non_zero_dividends['Fitted_Dividends'].iloc[len(non_zero_dividends) // 2]
         y_range = non_zero_dividends['Fitted_Dividends'].max() - non_zero_dividends['Fitted_Dividends'].min()
-        y_middle = y_middle + 0.1 * y_range
+        y_middle = y_middle + 0.2 * y_range
 
-        fig.add_annotation(x=x_middle, y=y_middle, text=f"연간 수익률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="black"), align='center')
+        fig.add_annotation(x=x_middle, y=y_middle, text=f"연간 수익률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="red"), align='center')
         fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_layout(
@@ -79,15 +79,15 @@ def app_single_stock():
     def plot_stock_data(data, a, b, ticker):
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=data['Date'], y=data['Close'], mode='lines', name='실제 주가', line=dict(color='black')))
-        fig.add_trace(go.Scatter(x=data['Date'], y=data['Fitted_Close'], mode='lines', name='모델 피팅', line=dict(color='red', dash='dot')))
+        fig.add_trace(go.Scatter(x=data['Date'], y=data['Fitted_Close'], mode='lines', name='CAGR 피팅', line=dict(color='red', dash='dot')))
         annual_return = (1 + b) ** 365.25 - 1
 
         x_middle = data['Date'].iloc[len(data) // 2]
         y_middle = data['Fitted_Close'].iloc[len(data) // 2]
         y_range = data['Fitted_Close'].max() - data['Fitted_Close'].min()
-        y_middle = y_middle + 0.1 * y_range
+        y_middle = y_middle + 0.2 * y_range
 
-        fig.add_annotation(x=x_middle, y=y_middle, text=f"연간 수익률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="black"), align='center')
+        fig.add_annotation(x=x_middle, y=y_middle, text=f"연간 수익률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="red"), align='center')
         fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_layout(
@@ -113,10 +113,10 @@ def app_single_stock():
         )
         return fig
 
-    st.title("주가 시각화 및 분석")
+    st.title("개별 주식 분석")
 
     ticker = st.text_input("주식 티커 기호를 입력하세요:")
-    submit_button = st.button('제출')
+    submit_button = st.button('show')
 
     if 'stock_data' not in st.session_state:
         st.session_state.stock_data = None
