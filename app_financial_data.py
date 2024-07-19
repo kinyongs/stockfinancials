@@ -285,7 +285,7 @@ def app_financial_data():
                             elif key_name == "자사주 매입":
                                 data = -cashflow_df['Repurchase Of Capital Stock'] #/ 1e6
                             elif key_name == "배당금":
-                                data = -(cashflow_df['Repurchase Of Capital Stock'] + cashflow_df['Cash Dividends Paid']) #/ 1e6
+                                data = -(cashflow_df['Cash Dividends Paid']) #/ 1e6
                             elif key_name == "주식 수":
                                 data = financials_df['Diluted Average Shares'] #/ 1e6
                             elif key_name == "EPS":
