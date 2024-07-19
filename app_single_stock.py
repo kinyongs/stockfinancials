@@ -76,7 +76,7 @@ def app_single_stock():
         )
         return fig
 
-    def plot_stock_data(data, a, b, ticker):
+    def plot_stock_data(data, a, b, ticker, yaxis_type='linear'):
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=data['Date'], y=data['Close'], mode='lines', name='실제 주가', line=dict(color='black')))
         fig.add_trace(go.Scatter(x=data['Date'], y=data['Fitted_Close'], mode='lines', name='CAGR 피팅', line=dict(color='red', dash='dot')))
@@ -87,9 +87,16 @@ def app_single_stock():
         y_range = data['Fitted_Close'].max() - data['Fitted_Close'].min()
         y_middle = y_middle + 0.2 * y_range
 
+        if yaxis_type == 'log':
+            y_min = max(data['Close'].min(), 1e-6)  # 로그 스케일을 위한 최소값 설정
+            y_max = data['Close'].max()
+            y_middle = 10 ** ((np.log10(data['Fitted_Close'].min()) + np.log10(data['Fitted_Close'].max())) / 2 + 0.2 * (np.log10(data['Fitted_Close'].max()) - np.log10(data['Fitted_Close'].min())))  # 로그 스케일에 맞춘 y_middle 값
+            fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot', type='log', range=[np.log10(y_min), np.log10(y_max)])
+        else:
+            fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot', type=yaxis_type)
+        
         fig.add_annotation(x=x_middle, y=y_middle, text=f"연간 수익률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="red"), align='center')
-        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
-        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
+
         fig.update_layout(
             title=f"{ticker} 주가",
             xaxis_title="날짜",
@@ -97,6 +104,8 @@ def app_single_stock():
             legend=dict(x=0, y=1, xanchor='left', yanchor='top')
         )
         return fig
+
+
 
     def plot_drawdown(data, ticker):
         drawdown_data = calculate_drawdown(data)
@@ -135,6 +144,7 @@ def app_single_stock():
             unsafe_allow_html=True
         )
 
+    scale_option = st.radio("가격 축 스케일을 선택하세요", ('Linear', 'Logarithmic'))
 
     submit_button = st.button('show')
 
@@ -164,7 +174,8 @@ def app_single_stock():
                 stock_data['Dividends'] = stock_data['Dividends']
                 a, b = annualized_return(stock_data, 'Close')
 
-                price_plot = plot_stock_data(stock_data, a, b, ticker)
+                yaxis_type = 'log' if scale_option == 'Logarithmic' else 'linear'
+                price_plot = plot_stock_data(stock_data, a, b, ticker, yaxis_type)
                 drawdown_plot = plot_drawdown(stock_data, ticker)
 
                 st.plotly_chart(price_plot, use_container_width=True)
@@ -197,7 +208,8 @@ def app_single_stock():
 
             a, b = annualized_return(st.session_state.filtered_data, 'Close')
 
-            price_plot = plot_stock_data(st.session_state.filtered_data, a, b, ticker)
+            yaxis_type = 'log' if scale_option == 'Logarithmic' else 'linear'
+            price_plot = plot_stock_data(st.session_state.filtered_data, a, b, ticker, yaxis_type)
             drawdown_plot = plot_drawdown(st.session_state.filtered_data, ticker)
 
             st.plotly_chart(price_plot, use_container_width=True)

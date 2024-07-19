@@ -55,11 +55,13 @@ daily_count, total_count = increment_visitor_count()
 # 각 페이지를 정의한 딕셔너리
 from app_single_stock import app_single_stock as single_stock_app
 from app_financial_data import app_financial_data as financial_data_app
+from app_double_stock import app_double_stock as double_stock_app
 from app_home import app as home_app
 
 PAGES = {
     "홈": home_app,
     "개별 주식 분석": single_stock_app,
+    "주가 비교 분석": double_stock_app,
     "기업 재무 데이터 분석": financial_data_app
 }
 
@@ -101,7 +103,7 @@ st.markdown("""
 # 상단 네비게이션 바 추가
 st.markdown('<div class="top-nav">', unsafe_allow_html=True)
 
-nav_buttons = ["홈", "개별 주식 분석", "기업 재무 데이터 분석"]
+nav_buttons = ["홈", "개별 주식 분석", "주가 비교 분석","기업 재무 데이터 분석"]
 
 for page in nav_buttons:
     if st.button(page):
