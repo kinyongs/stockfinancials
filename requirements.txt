@@ -6,3 +6,4 @@ plotly
 numpy
 scipy
 datetime
+fredapi
