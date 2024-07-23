@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from scipy.optimize import curve_fit
 import plotly.graph_objects as go
+from datetime import datetime
 
 def app_single_stock():
     pd.set_option('future.no_silent_downcasting', True)
@@ -65,7 +66,7 @@ def app_single_stock():
         y_range = non_zero_dividends['Fitted_Dividends'].max() - non_zero_dividends['Fitted_Dividends'].min()
         y_middle = y_middle + 0.2 * y_range
 
-        fig.add_annotation(x=x_middle, y=y_middle, text=f"연간 수익률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="red"), align='center')
+        fig.add_annotation(x=x_middle, y=y_middle, text=f"연평균 상승률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="red"), align='center')
         fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
         fig.update_layout(
@@ -95,7 +96,7 @@ def app_single_stock():
         else:
             fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot', type=yaxis_type)
         
-        fig.add_annotation(x=x_middle, y=y_middle, text=f"연간 수익률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="red"), align='center')
+        fig.add_annotation(x=x_middle, y=y_middle, text=f"연평균 상승률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="red"), align='center')
 
         fig.update_layout(
             title=f"{ticker} 주가",
@@ -104,8 +105,6 @@ def app_single_stock():
             legend=dict(x=0, y=1, xanchor='left', yanchor='top')
         )
         return fig
-
-
 
     def plot_drawdown(data, ticker):
         drawdown_data = calculate_drawdown(data)
@@ -136,7 +135,7 @@ def app_single_stock():
                 <tr><td>나스닥100</td><td>^NDX</td><td>지수</td></tr>
                 <tr><td>SPY ETF</td><td>SPY</td><td>ETF</td></tr>
                 <tr><td>마이크로소프트</td><td>MSFT</td><td>미국주식</td></tr>
-                <tr><td>애플</td><td>APPL</td><td>미국주식</td></tr>
+                <tr><td>애플</td><td>AAPL</td><td>미국주식</td></tr>
                 <tr><td>삼성전자</td><td>005930.KS</td><td>코스피</td></tr>
                 <tr><td>리노공업</td><td>058470.KQ</td><td>코스닥</td></tr>
             </table>
@@ -184,13 +183,31 @@ def app_single_stock():
                 dividend_plot = plot_dividends_and_cagr(stock_data)
                 if dividend_plot:
                     st.plotly_chart(dividend_plot, use_container_width=True)
+                
+                # 뉴스 데이터를 가져와서 테이블로 표시
+                stock = yf.Ticker(ticker)
+                news = stock.news
+
+                if news:
+                    st.subheader("최신 뉴스")
+                    news_df = pd.DataFrame(news)
+                    news_df['publish_time'] = news_df['providerPublishTime'].apply(lambda x: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S'))
+                    news_df = news_df[['title', 'link', 'publish_time']]
+                    news_df.columns = ['제목', '링크', '게시일']
+                    
+                    # 뉴스 데이터를 마크다운 형식으로 표시
+                    for index, row in news_df.iterrows():
+                        st.markdown(f"**[{row['제목']}]({row['링크']})**  \n게시일: {row['게시일']}")
+                else:
+                    st.warning("해당 티커에 대한 뉴스를 찾을 수 없습니다.")
+                
         except Exception as e:
             st.error(f"오류가 발생했습니다: {e}. 티커 기호를 확인하고 다시 시도하세요.")
 
     if st.session_state.initial_submit and st.session_state.stock_data is not None:
         min_date = st.session_state.stock_data['Date'].min()
         max_date = st.session_state.stock_data['Date'].max()
-
+        st.subheader("날짜 범위 조정")
         start_date, end_date = st.slider(
             "날짜 범위를 선택하세요",
             min_value=min_date.to_pydatetime(),
