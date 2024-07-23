@@ -131,6 +131,7 @@ def app_sp500():
         if log_scale:
             fig.update_yaxes(type="log")
 
+
         fig.update_layout(
             title='S&P 500 and EPS with Recession Periods',
             xaxis_title='Date',
@@ -224,15 +225,6 @@ def app_sp500():
             legend=dict(x=0, y=1,xanchor='left', yanchor='top')
         )
         st.plotly_chart(fig)
-
-    # def plot_annual_returns(data):
-    #     fig = go.Figure()
-
-    #     annual_returns = calculate_annual_returns(data)
-    #     fig.add_trace(go.Bar(x=annual_returns.index.strftime('%Y'), y=annual_returns['S&P 500'], name='S&P 500'))
-
-    #     fig.update_layout(title='S&P 500 Annual Returns', xaxis_title='Year', yaxis_title='Annual Return', legend=dict(x=0, y=1,xanchor='left', yanchor='top'))
-    #     st.plotly_chart(fig)
 
     def plot_annual_returns(data):
         fig = go.Figure()

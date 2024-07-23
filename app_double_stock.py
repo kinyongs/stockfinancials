@@ -151,7 +151,7 @@ def app_double_stock():
     ticker1 = st.text_input("첫 번째 주식 티커 기호를 입력하세요:")
     ticker2 = st.text_input("두 번째 주식 티커 기호를 입력하세요:")
 
-    submit_button = st.button('show')
+    submit_button = st.button('show', key='unique_key_show')
 
     if 'stock_data1' not in st.session_state:
         st.session_state.stock_data1 = None
