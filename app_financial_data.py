@@ -5,6 +5,7 @@ import streamlit as st
 from yahooquery import Ticker
 import plotly.graph_objects as go
 import numpy as np
+from datetime import datetime
 
 def app_financial_data():
     pd.set_option('future.no_silent_downcasting', True)
@@ -104,20 +105,14 @@ def app_financial_data():
 
         return fig
 
-    # 그래프 출력 함수
-    def plot(item, key_name, color1, color2, ticker, stock_data):
+    # 그래프 출력 함수 (주가 포함)
+    def plot_1(item, key_name, color1, color2, ticker, stock_data):
         try:
             growth = item.pct_change() * 100
             growth = growth.infer_objects(copy=False)
         except Exception as e:
             print(f"Error processing growth calculation for {key_name}: {e}")
             growth = pd.Series([np.nan] * len(item), index=item.index)
-    
-    
-    # def plot(item, key_name, color1, color2, ticker, stock_data):
-        
-    #     growth = item.pct_change() * 100
-    #     growth = growth.infer_objects(copy=False)
 
         fig = go.Figure()
 
@@ -179,18 +174,78 @@ def app_financial_data():
             legend_title=key_name,
             xaxis=dict(tickmode='array', tickvals=item.index, ticktext=item.index.strftime('%Y-%m-%d')),
             yaxis2=dict(
-                title='종가',
+                title='Price',
                 overlaying='y',
                 side='right',
                 showgrid=False
             ),
             template='plotly_white',
-            legend=dict(
-            x=0,
-            y=0.2,
-            xanchor='left',
-            yanchor='top'
+            showlegend = False
+
+        )
+
+        return fig
+
+    # 그래프 출력 함수 (주가 미포함)
+    def plot_2(item, key_name, color1, color2):
+        try:
+            growth = item.pct_change() * 100
+            growth = growth.infer_objects(copy=False)
+        except Exception as e:
+            print(f"Error processing growth calculation for {key_name}: {e}")
+            growth = pd.Series([np.nan] * len(item), index=item.index)
+
+        fig = go.Figure()
+
+        # 막대 그래프 그리기
+        fig.add_trace(go.Bar(
+            x=item.index,
+            y=item,
+            marker_color=color1,
+            name=key_name,
+            text=[round(val, 2) for val in item],
+            textposition='outside'
+        ))
+
+        # 변화율 화살표 및 텍스트 추가
+        for i in range(1, len(item)):
+            # 화살표 추가
+            fig.add_annotation(
+                x=item.index[i],
+                y=item.iloc[i],
+                ax=item.index[i-1],
+                ay=item.iloc[i-1],
+                xref='x',
+                yref='y',
+                axref='x',
+                ayref='y',
+                showarrow=True,
+                arrowhead=2,
+                arrowsize=1,
+                arrowwidth=2,
+                arrowcolor=color2
             )
+
+            # 변화율 텍스트 추가 (화살표의 중간 아래에 위치)
+            midpoint_x = item.index[i-1] + (item.index[i] - item.index[i-1]) / 2
+            midpoint_y = (item.iloc[i] + item.iloc[i-1]) / 2
+            fig.add_annotation(
+                x=midpoint_x,
+                y=midpoint_y + (abs(item.iloc[i] - item.iloc[i-1]) * 0.4),  # 화살표의 중간 아래 위치
+                text=f'{growth.iloc[i]:.1f}%',
+                showarrow=False,
+                font=dict(color=color2)
+            )
+
+        # 그래프 레이아웃 설정
+        fig.update_layout(
+            title=f'{key_name} 변화',
+            xaxis_title='날짜',
+            yaxis_title=key_name,
+            legend_title=key_name,
+            xaxis=dict(tickmode='array', tickvals=item.index, ticktext=item.index.strftime('%Y-%m-%d')),
+            template='plotly_white',
+
         )
 
         return fig
@@ -204,27 +259,6 @@ def app_financial_data():
         ticker = st.text_input("주식 티커를 입력하세요:")
     with col2:
         period = st.radio("기간을 선택하세요:", ("분기별", "연간"))
-
-    # 메트릭 선택
-    st.subheader("표시할 메트릭 선택")
-    cols = st.columns(4)
-    metrics = {
-        "매출": cols[0].checkbox('매출'),
-        "영업 이익": cols[0].checkbox("영업 이익"),
-        "영업 마진": cols[0].checkbox("영업 마진"),
-        "순이익": cols[0].checkbox("순이익"),
-        "CAPEX": cols[1].checkbox("CAPEX"),
-        "자사주 매입": cols[1].checkbox('자사주 매입'),
-        "배당금": cols[1].checkbox('배당금'),
-        "주식 수": cols[1].checkbox('주식 수'),
-        "EPS": cols[2].checkbox('EPS'),
-        "DPS": cols[2].checkbox('DPS'),
-        "PER": cols[2].checkbox('PER'),
-        "PBR": cols[2].checkbox('PBR'),
-        "ROE": cols[2].checkbox('ROE'),
-        "Owner Earning": cols[3].checkbox('Owner Earning'),
-        "목표 가격": cols[3].checkbox("목표 가격")
-    }
 
     if st.button("Show"):
         if not ticker:
@@ -255,7 +289,7 @@ def app_financial_data():
                 balance_sheet_df = balance_sheet.T.sort_index()
 
                 oldest_date = financials_df.index.min()
-                stock_data = yf.download(ticker, start=oldest_date, end="2026-01-01")
+                stock_data = yf.download(ticker, start=oldest_date, end=datetime.today().strftime('%Y-%m-%d'))
                 stock_data['Close'] = stock_data['Close'].ffill()
 
                 financials_df['주가'] = financials_df.index.to_series().apply(
@@ -267,48 +301,72 @@ def app_financial_data():
 
                 st.plotly_chart(plot_stock_price(stock_data, ticker, financials_df))
 
-                for key, val in metrics.items():
-                    if val:
-                        key_name = key
-                        data_key = key.replace(" ", "_")
-                        try:
-                            if key_name == "매출":
-                                data = financials_df['Total Revenue'] #/ 1e6
-                            elif key_name == "영업 이익":
-                                data = financials_df['Operating Income'] #/ 1e6
-                            elif key_name == "영업 마진":
-                                data = (financials_df['Operating Income'] / financials_df['Total Revenue']) * 100
-                            elif key_name == "순이익":
-                                data = financials_df['Net Income'] #/ 1e6
-                            elif key_name == "CAPEX":
-                                data = -cashflow_df['Capital Expenditure'] #/ 1e6
-                            elif key_name == "자사주 매입":
-                                data = -cashflow_df['Repurchase Of Capital Stock'] #/ 1e6
-                            elif key_name == "배당금":
-                                data = -(cashflow_df['Cash Dividends Paid']) #/ 1e6
-                            elif key_name == "주식 수":
-                                data = financials_df['Diluted Average Shares'] #/ 1e6
-                            elif key_name == "EPS":
-                                data = financials_df['Diluted EPS']
-                            elif key_name == "DPS":
-                                data = -cashflow_df['Cash Dividends Paid'] / financials_df['Diluted Average Shares']
-                            elif key_name == "PER":
-                                data = financials_df['주가'] / financials_df['Diluted EPS']
-                            elif key_name == "PBR":
-                                data = balance_sheet_df['주가'] / (balance_sheet_df['Stockholders Equity'] / financials_df['Diluted Average Shares'])
-                            elif key_name == "ROE":
-                                data = (financials_df['Net Income'] / balance_sheet_df['Stockholders Equity']) * 100
-                            elif key_name == "Owner Earning":
-                                data = (financials_df['Net Income'] + cashflow_df['Depreciation And Amortization'] + cashflow_df['Capital Expenditure']) #/ 1e6
-                            else:
-                                continue
-                            st.plotly_chart(plot(data.dropna(), key_name, 'gray', 'black', ticker, stock_data))
-                        except KeyError:
-                            st.error(f"{key_name}에 대한 데이터가 없습니다.")
-                            continue
 
-                if metrics["목표 가격"]:
-                    financial_data = get_financial_data(ticker)
-                    st.subheader("목표 가격")
-                    target_prices_fig = plot_target_prices(financial_data, ticker)
-                    st.plotly_chart(target_prices_fig)
+                
+                try:
+                    tabs1 = st.tabs(["매출", "영업이익", "영업 마진", "순이익"])
+
+                    with tabs1[0]:
+                        st.plotly_chart(plot_1(financials_df['Total Revenue'], '매출', 'blue', 'red', ticker, stock_data))
+                    with tabs1[1]:
+                        st.plotly_chart(plot_1(financials_df['Operating Income'], '영업 이익', 'green', 'red', ticker, stock_data))
+                    with tabs1[2]:
+                        st.plotly_chart(plot_2((financials_df['Operating Income'] / financials_df['Total Revenue']) * 100, '영업 마진', 'purple', 'red'))
+                    with tabs1[3]:
+                        st.plotly_chart(plot_1(financials_df['Net Income'], '순이익', 'grey', 'red', ticker, stock_data))
+                
+                except KeyError:
+                    st.error(f"관련 데이터가 없습니다.")
+
+                try:
+                    tabs2 = st.tabs(["자사주 매입", "배당금"])
+
+                    with tabs2[0]:
+                        st.plotly_chart(plot_2(-cashflow_df['Repurchase Of Capital Stock'], '자사주 매입', 'brown', 'red'))
+                    with tabs2[1]:
+                        st.plotly_chart(plot_2(-cashflow_df['Cash Dividends Paid'], '배당금', 'black', 'red'))
+                except KeyError:
+                    st.error(f"관련 데이터가 없습니다.")    
+                
+                try:
+                    tabs3 = st.tabs(["CAPEX", "주식 수"])
+
+                    with tabs3[0]:
+                        st.plotly_chart(plot_2(-cashflow_df['Capital Expenditure'], 'CAPEX', 'cyan', 'red'))
+                    with tabs3[1]:
+                        st.plotly_chart(plot_2(financials_df['Diluted Average Shares'], '주식 수', 'magenta', 'red'))
+                except KeyError:
+                    st.error(f"관련 데이터가 없습니다.")
+
+                try:    
+                    tabs4 = st.tabs(["EPS", "DPS"])
+
+                    with tabs4[0]:
+                        st.plotly_chart(plot_1(financials_df['Diluted EPS'], 'EPS', 'blue', 'red', ticker, stock_data))
+                    with tabs4[1]:
+                        st.plotly_chart(plot_1(-cashflow_df['Cash Dividends Paid'] / financials_df['Diluted Average Shares'], 'DPS', 'green', 'red', ticker, stock_data))
+                except KeyError:
+                    st.error(f"관련 데이터가 없습니다.")
+
+                try:    
+                    tabs5 = st.tabs(["PER", "PBR", "ROE"])
+
+                    with tabs5[0]:
+                        st.plotly_chart(plot_2(financials_df['주가'] / financials_df['Diluted EPS'], 'PER', 'blue', 'red'))
+                    with tabs5[1]:
+                        st.plotly_chart(plot_2(balance_sheet_df['주가'] / (balance_sheet_df['Stockholders Equity'] / financials_df['Diluted Average Shares']), 'PBR', 'green', 'red'))
+                    with tabs5[2]:
+                        st.plotly_chart(plot_2((financials_df['Net Income'] / balance_sheet_df['Stockholders Equity']) * 100, 'ROE', 'orange', 'red'))
+                except KeyError:
+                    st.error(f"관련 데이터가 없습니다.")
+                
+                try:    
+                    tabs6 = st.tabs(["Owner Earning", "목표 가격"])
+                    with tabs6[0]:
+                        st.plotly_chart(plot_1(financials_df['Net Income'] + cashflow_df['Depreciation And Amortization'] + cashflow_df['Capital Expenditure'], 'Owner Earning', 'purple', 'red', ticker, stock_data))
+                    with tabs6[1]:
+                        financial_data = get_financial_data(ticker)
+                        st.plotly_chart(plot_target_prices(financial_data, ticker))
+                except KeyError:
+                    st.error(f"관련 데이터가 없습니다.")
+                
