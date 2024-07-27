@@ -6,4 +6,6 @@ plotly
 numpy
 scipy
 datetime
+requests
 fredapi
+fear_and_greed
