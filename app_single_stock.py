@@ -97,8 +97,6 @@ def app_single_stock():
             fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot', type=yaxis_type)
         
         fig.add_annotation(x=x_middle, y=y_middle, text=f"연평균 상승률: {annual_return:.2%}", showarrow=False, font=dict(size=12, color="red"), align='center')
-        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
-        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
 
         fig.update_layout(
             title=f"{ticker} 주가",
@@ -122,31 +120,6 @@ def app_single_stock():
             showlegend=False
         )
         return fig
-    
-    def plot_inverted_stock_data(data, ticker, yaxis_type='linear'):
-        # 상하 반전된 데이터 생성
-        data['Inverted_Close'] = -data['Close'] + data['Close'].max() + data['Close'].min()
-
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=data['Date'], y=data['Inverted_Close'], mode='lines', name='상하 반전 주가', line=dict(color='blue')))
-        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
-        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
-        fig.update_layout(
-            title=f"{ticker} 상하 반전 주가",
-            xaxis_title="날짜",
-            yaxis_title="가격 (Arbitary Unit)",
-            legend=dict(x=0, y=1, xanchor='left', yanchor='top')
-        )
-        
-        if yaxis_type == 'log':
-            y_min = max(data['Inverted_Close'].min(), 1e-6)  # 로그 스케일을 위한 최소값 설정
-            y_max = data['Inverted_Close'].max()
-            fig.update_yaxes(type='log', range=[np.log10(y_min), np.log10(y_max)])
-    
-        return fig
-
-
-
 
     st.title("개별 주식 분석")
 
@@ -211,8 +184,6 @@ def app_single_stock():
                 if dividend_plot:
                     st.plotly_chart(dividend_plot, use_container_width=True)
                 
-                st.plotly_chart(plot_inverted_stock_data(stock_data, ticker), use_container_width=True)
-
                 # 뉴스 데이터를 가져와서 테이블로 표시
                 stock = yf.Ticker(ticker)
                 news = stock.news
@@ -264,5 +235,3 @@ def app_single_stock():
             dividend_plot = plot_dividends_and_cagr(st.session_state.filtered_data)
             if dividend_plot:
                 st.plotly_chart(dividend_plot, use_container_width=True)
-
-            st.plotly_chart(plot_inverted_stock_data(st.session_state.filtered_data, ticker), use_container_width=True)
