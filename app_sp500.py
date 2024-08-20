@@ -23,7 +23,8 @@ def app_sp500():
         cpi = fred.get_series('CPIAUCSL', start_date=start_date, end_date=end_date)
         ten_year_treasury = fred.get_series('GS10', start_date=start_date, end_date=end_date)
         unemployment_rate = fred.get_series('UNRATE', start_date=start_date, end_date=end_date)
-        return sp500, m2, gdp, recession, cpi, ten_year_treasury, unemployment_rate
+        fed_funds_rate = fred.get_series('FEDFUNDS', start_date=start_date, end_date=end_date)  # 기준금리 데이터 추가
+        return sp500, m2, gdp, recession, cpi, ten_year_treasury, unemployment_rate, fed_funds_rate
 
     # EPS 데이터 가져오기 함수
     def fetch_eps_data(file_path):
@@ -32,7 +33,7 @@ def app_sp500():
         return eps_data
 
     # 데이터 전처리 함수
-    def preprocess_data(sp500, m2, gdp, recession, eps_data, cpi, ten_year_treasury, unemployment_rate):
+    def preprocess_data(sp500, m2, gdp, recession, eps_data, cpi, ten_year_treasury, unemployment_rate, fed_funds_rate):
         sp500.index = pd.to_datetime(sp500.index)
         m2.index = pd.to_datetime(m2.index)
         gdp.index = pd.to_datetime(gdp.index)
@@ -40,6 +41,7 @@ def app_sp500():
         cpi.index = pd.to_datetime(cpi.index)
         ten_year_treasury.index = pd.to_datetime(ten_year_treasury.index)
         unemployment_rate.index = pd.to_datetime(unemployment_rate.index)
+        fed_funds_rate.index = pd.to_datetime(fed_funds_rate.index)
 
         data = pd.DataFrame(index=sp500.index)
         data['S&P 500'] = sp500['Adj Close']
@@ -50,6 +52,7 @@ def app_sp500():
         data = data.join(cpi.rename('CPI'), how='left')
         data = data.join(ten_year_treasury.rename('Ten Year Treasury'), how='left')
         data = data.join(unemployment_rate.rename('Unemployment Rate'), how='left')
+        data = data.join(fed_funds_rate.rename('Federal Funds Rate'), how='left')
         data.ffill(inplace=True)
 
         return data
@@ -87,7 +90,7 @@ def app_sp500():
     # 연간 수익률 계산 함수
     def calculate_annual_returns(data):
         annual_data = data.resample('Y').last()
-        annual_data = annual_data.drop(columns=['M2', 'Recession', 'EPS', 'Ten Year Treasury', 'Unemployment Rate'])
+        annual_data = annual_data.drop(columns=['M2', 'Recession', 'EPS', 'Ten Year Treasury', 'Unemployment Rate', 'Federal Funds Rate'])
         annual_returns = annual_data.pct_change().dropna()
         
         return annual_returns
@@ -226,6 +229,27 @@ def app_sp500():
         )
         st.plotly_chart(fig)
 
+    def plot_sp500_and_federal_fund_rate(data, recession_ranges, sp500, log_scale):
+        fig = go.Figure()
+
+        fig.add_trace(go.Scatter(x=data.index, y=data['S&P 500'], mode='lines', name='S&P 500'))
+        fig.add_trace(go.Scatter(x=data.index, y=data['Federal Funds Rate'], mode='lines', name='Federal Funds Rate', yaxis='y2'))
+
+        for start, end in recession_ranges:
+            fig.add_vrect(x0=start, x1=end, fillcolor="lightgray", opacity=0.5, line_width=0)
+
+        if log_scale:
+            fig.update_yaxes(type="log")
+
+        fig.update_layout(
+            title='S&P 500 and Federal Funds Rate with Recession Periods',
+            xaxis_title='Date',
+            yaxis=dict(title='S&P 500', side='left'),
+            yaxis2=dict(title='Federal Funds Rate (%)', side='right', overlaying='y'),
+            legend=dict(x=0, y=1,xanchor='left', yanchor='top')
+        )
+        st.plotly_chart(fig)
+
     def plot_annual_returns(data):
         fig = go.Figure()
 
@@ -256,9 +280,9 @@ def app_sp500():
     def main():
         st.title('S&P 500 index and Macro data')
 
-        sp500, m2, gdp, recession, cpi, ten_year_treasury, unemployment_rate = fetch_data()
+        sp500, m2, gdp, recession, cpi, ten_year_treasury, unemployment_rate, fed_funds_rate = fetch_data()
         eps_data = fetch_eps_data('data/sp500EPS.csv')
-        data = preprocess_data(sp500, m2, gdp, recession, eps_data, cpi, ten_year_treasury, unemployment_rate)
+        data = preprocess_data(sp500, m2, gdp, recession, eps_data, cpi, ten_year_treasury, unemployment_rate, fed_funds_rate)
         recession_ranges = calculate_recession_periods(data)
         sp500 = calculate_drawdown(sp500)
 
@@ -303,6 +327,11 @@ def app_sp500():
         st.markdown('This plot shows the S&P 500 adjusted close price and Unemployment Rate over time.')
         log_scale_unemployment = st.checkbox('Log Scale Unemployment Rate', value=False, key='log_scale_unemployment')
         plot_sp500_and_unemployment_rate(data, recession_ranges, sp500, log_scale_unemployment)
+
+        st.subheader('S&P 500 and Federal Funds Rate')
+        st.markdown('This plot shows the S&P 500 adjusted close price and Federal Funds Rate over time.')
+        log_scale_federal_funds_rate = st.checkbox('Log Scale Federal Funds Rate', value=False, key='log_scale_federal_funds_rate')
+        plot_sp500_and_federal_fund_rate(data, recession_ranges, sp500, log_scale_federal_funds_rate)
 
     # if __name__ == '__main__':
     main()
