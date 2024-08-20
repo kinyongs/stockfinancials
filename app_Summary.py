@@ -136,7 +136,7 @@ def app_Summary():
 
     # Create tabs
     # tab1, tab2, tab3, tab4 = st.tabs(["S&P 500", "Drawdown", "Fear and Greed Index", "Market News"])
-    tab1, tab2, tab3, tab4 = st.tabs(["S&P 500", "Drawdown", "Fear and Greed Index"])
+    tab1, tab2, tab3 = st.tabs(["S&P 500", "Drawdown", "Fear and Greed Index"])
 
     with tab1:
         st.subheader("S&P 500 Index")
