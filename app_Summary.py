@@ -135,7 +135,8 @@ def app_Summary():
 
 
     # Create tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["S&P 500", "Drawdown", "Fear and Greed Index", "Market News"])
+    # tab1, tab2, tab3, tab4 = st.tabs(["S&P 500", "Drawdown", "Fear and Greed Index", "Market News"])
+    tab1, tab2, tab3, tab4 = st.tabs(["S&P 500", "Drawdown", "Fear and Greed Index"])
 
     with tab1:
         st.subheader("S&P 500 Index")
@@ -150,20 +151,20 @@ def app_Summary():
             # Streamlit에 그래프 표시
         st.plotly_chart(fig3)
 
-    with tab4:
-        st.subheader("Market News")
-        ticker = "SPY"  # S&P 500 ETF 티커
-        stock = yf.Ticker(ticker)
-        news = stock.news
+    # with tab4:
+    #     st.subheader("Market News")
+    #     ticker = "SPY"  # S&P 500 ETF 티커
+    #     stock = yf.Ticker(ticker)
+    #     news = stock.news
 
-        if news:
-            news_df = pd.DataFrame(news)
-            news_df['publish_time'] = news_df['providerPublishTime'].apply(lambda x: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S'))
-            news_df = news_df[['title', 'link', 'publish_time']]
-            news_df.columns = ['제목', '링크', '게시일']
+    #     if news:
+    #         news_df = pd.DataFrame(news)
+    #         news_df['publish_time'] = news_df['providerPublishTime'].apply(lambda x: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S'))
+    #         news_df = news_df[['title', 'link', 'publish_time']]
+    #         news_df.columns = ['제목', '링크', '게시일']
 
-            # 뉴스 데이터를 마크다운 형식으로 표시
-            for index, row in news_df.iterrows():
-                st.markdown(f"**[{row['제목']}]({row['링크']})**  \n게시일: {row['게시일']}")
-        else:
-            st.warning("해당 티커에 대한 뉴스를 찾을 수 없습니다.")
+    #         # 뉴스 데이터를 마크다운 형식으로 표시
+    #         for index, row in news_df.iterrows():
+    #             st.markdown(f"**[{row['제목']}]({row['링크']})**  \n게시일: {row['게시일']}")
+    #     else:
+    #         st.warning("해당 티커에 대한 뉴스를 찾을 수 없습니다.")
