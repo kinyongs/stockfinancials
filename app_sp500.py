@@ -57,6 +57,46 @@ def app_sp500():
 
         return data
 
+    def preprocess_data2(sp500, cpi):
+        sp500.index = pd.to_datetime(sp500.index)
+        cpi.index = pd.to_datetime(cpi.index)
+        
+        data2 = pd.DataFrame(index=sp500.index)
+        data2['S&P 500'] = sp500['Adj Close']
+        data2 = data2.join(cpi.rename('CPI'), how='left')
+        data2.dropna(inplace=True)  # NaN 데이터 제외
+        return data2
+
+    def adjust_for_inflation(data2):
+        # CPI를 기준으로 S&P 500 인플레이션 조정
+        data2['Inflation Adjusted S&P 500'] = data2['S&P 500'] / data2['CPI'] * data2['CPI'].iloc[0]
+        return data2
+
+    def calculate_dollar_values(data2):
+        data2['$1 in S&P 500'] = (1 / data2['S&P 500'].iloc[0]) * data2['S&P 500']
+        data2['$1 in Cash (Inflation Adjusted)'] = 1 / data2['CPI'] * data2['CPI'].iloc[0]
+        return data2
+
+    def plot_cash_vs_sp500_inflation_adjusted(data2):
+        fig = go.Figure()
+
+        # S&P 500에 투자된 1달러 가치 그래프
+        fig.add_trace(go.Scatter(x=data2.index, y=data2['Inflation Adjusted S&P 500'] / data2['Inflation Adjusted S&P 500'].iloc[0], 
+                                mode='lines', name='$1 in S&P 500 (Inflation Adjusted)'))                        
+
+        # 인플레이션 조정된 현금 1달러 가치 그래프
+        fig.add_trace(go.Scatter(x=data2.index, y=data2['$1 in Cash (Inflation Adjusted)'], mode='lines', name='$1 in Cash (Inflation Adjusted)'))
+        
+        fig.update_layout(
+            title='$1 Value Over Time: S&P 500 vs Cash (Inflation Adjusted)',xaxis_title='Date',
+            yaxis_title='Value of $1', paper_bgcolor='white', plot_bgcolor='white',
+            xaxis=dict(showgrid=True,gridcolor='lightgrey',gridwidth=0.5,linecolor='black',linewidth=1,tickfont=dict(size=10),),
+            yaxis=dict(showgrid=True,gridcolor='lightgrey',gridwidth=0.5,linecolor='black',linewidth=1,tickfont=dict(size=10),type = 'log'),legend=dict(x=0,y=1, xanchor='left',yanchor='top')
+        )
+        
+        st.plotly_chart(fig)
+
+
     # 경기 침체 기간 계산 함수
     def calculate_recession_periods(data):
         recession_ranges = []
@@ -289,7 +329,7 @@ def app_sp500():
         # st.header('Overview')
 
         st.subheader('S&P 500 Price and Fitting')
-        st.markdown('This plot shows the S&P 500 adjusted close price over time with an exponential fit.')
+        st.markdown('This plot shows the S&P 500 index over time with an exponential fit.')
         log_scale_price_fitting = st.checkbox('Log Scale Price Fitting', value=False, key='log_scale_price_fitting')
         popt = fit_data(sp500)
         cagr_percent = popt[1]
@@ -304,34 +344,42 @@ def app_sp500():
         plot_annual_returns(data)
 
         st.subheader('S&P 500 and EPS')
-        st.markdown('This plot shows the S&P 500 adjusted close price and EPS over time.')
+        st.markdown('This plot shows the S&P 500 index and EPS over time.')
         log_scale_eps = st.checkbox('Log Scale EPS', value=False, key='log_scale_eps')
         plot_sp500_and_eps(data, recession_ranges, sp500, log_scale_eps)
 
         st.subheader('S&P 500 and M2')
-        st.markdown('This plot shows the S&P 500 adjusted close price and M2 money supply over time.')
+        st.markdown('This plot shows the S&P 500 index and M2 money supply over time.')
         log_scale_m2 = st.checkbox('Log Scale M2', value=False, key='log_scale_m2')
         plot_sp500_and_m2(data, recession_ranges, sp500, log_scale_m2)
 
         st.subheader('S&P 500 and GDP')
-        st.markdown('This plot shows the S&P 500 adjusted close price and GDP over time.')
+        st.markdown('This plot shows the S&P 500 index and GDP over time.')
         log_scale_gdp = st.checkbox('Log Scale GDP', value=False, key='log_scale_gdp')
         plot_sp500_and_gdp(data, recession_ranges, sp500, log_scale_gdp)
 
         st.subheader('S&P 500 and 10-Year Treasury Yield')
-        st.markdown('This plot shows the S&P 500 adjusted close price and 10-Year Treasury Yield over time.')
+        st.markdown('This plot shows the S&P 500 index and 10-Year Treasury Yield over time.')
         log_scale_treasury = st.checkbox('Log Scale Treasury Yield', value=False, key='log_scale_treasury')
         plot_sp500_and_ten_year_treasury(data, recession_ranges, sp500, log_scale_treasury)
 
         st.subheader('S&P 500 and Unemployment Rate')
-        st.markdown('This plot shows the S&P 500 adjusted close price and Unemployment Rate over time.')
+        st.markdown('This plot shows the S&P 500 index and Unemployment Rate over time.')
         log_scale_unemployment = st.checkbox('Log Scale Unemployment Rate', value=False, key='log_scale_unemployment')
         plot_sp500_and_unemployment_rate(data, recession_ranges, sp500, log_scale_unemployment)
 
         st.subheader('S&P 500 and Federal Funds Rate')
-        st.markdown('This plot shows the S&P 500 adjusted close price and Federal Funds Rate over time.')
+        st.markdown('This plot shows the S&P 500 index and Federal Funds Rate over time.')
         log_scale_federal_funds_rate = st.checkbox('Log Scale Federal Funds Rate', value=False, key='log_scale_federal_funds_rate')
         plot_sp500_and_federal_fund_rate(data, recession_ranges, sp500, log_scale_federal_funds_rate)
+
+        st.subheader('$1 value over Time : S&P 500 vs Cash (inflation adjusted)')
+        st.markdown('This plot shows the $1 value over time.')
+        data2 = preprocess_data2(sp500, cpi)
+        data2 = adjust_for_inflation(data2)
+        data2 = calculate_dollar_values(data2)
+        plot_cash_vs_sp500_inflation_adjusted(data2)
+
 
     # if __name__ == '__main__':
     main()
