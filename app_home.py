@@ -20,6 +20,9 @@ def app():
     st.write('홈 페이지에 오신 것을 환영합니다.')
     st.markdown("[운영자의 블로그 : https://blog.naver.com/smartdotori](https://blog.naver.com/smartdotori)")
 
+    st.header('S&P 500 최근 자료 요약')
+    st.write('최근 5년 동안의 S&P 500 Index, Drawdown, 현재 Fear and Greed Index를 제공합니다.')
+
     st.header('S&P 500과 매크로 데이터 분석')
     st.write('S&P 500 Index와 CAGR fitting curve, drawdown, 연간 수익률을 제공합니다.')
     st.write('EPS, M2, GDP, 10년물 금리, 실업률 정보를 S&P 500 지수와 함께 제시합니다.')
@@ -36,4 +39,7 @@ def app():
     st.write('재무 데이터 분석 페이지는 기업의 재무 정보를 제공합니다.')
     st.write(' 또한 오너 어닝 및 목표 주가를 제시합니다.')
 
+    st.header('적립식 투자 시뮬레이션')
+    st.write('투자금, 적립식 금액, 수익률에 따른 자산 변화를 그래프와 함께 제시합니다.')
+    
     
