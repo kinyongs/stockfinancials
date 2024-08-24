@@ -8,6 +8,7 @@ from app_home import app as home_app
 from app_sp500 import app_sp500 as sp500_app
 from app_Summary import app_Summary as summary_app
 from app_Monthly_Investment import app_Monthly_Investment as Monthly_Investment_app
+from app_stock_value import app_stock_value as stock_value_app
 
 PAGES = {
     "홈": home_app,
