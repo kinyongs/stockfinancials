@@ -16,6 +16,9 @@ def app_stock_value():
             # FCF 가져오기 (OCF = FCF + CapEx)
             fcf = cash_flow.loc['Free Cash Flow']
             capex = cash_flow.loc['Capital Expenditure']
+            # yfinance에서 총 발행 주식 수 및 현재 주가 가져오기
+            total_shares = stock.info['sharesOutstanding']
+            current_price = stock.history(period='1d')['Close'].iloc[-1]
         except KeyError as e:
             st.error(f"Error fetching data: {e}")
             return None
@@ -84,9 +87,7 @@ def app_stock_value():
         past_discounted_fcf_sum = np.sum(fcf_values / (1 + discount_rate) ** np.arange(1, len(fcf_values) + 1))
         estimated_value = past_discounted_fcf_sum + cv_values
 
-        # yfinance에서 총 발행 주식 수 및 현재 주가 가져오기
-        total_shares = stock.info['sharesOutstanding']
-        current_price = stock.history(period='1d')['Close'].iloc[-1]
+        
 
         # 데이터프레임 생성
         data = {
