@@ -27,12 +27,12 @@ def app_stock_value():
         fcf = fcf.dropna()
 
         # 실제 연도 추출
-        years_actual = ocf.index.year
+        years_actual = ocf.index.year[::-1]
         years_normalized = years_actual - years_actual.min()
 
         # OCF와 FCF 값을 배열로 변환
-        ocf_values = np.array(ocf.values, dtype=float)
-        fcf_values = np.array(fcf.values, dtype=float)
+        ocf_values = np.array(ocf.values, dtype=float)[::-1]
+        fcf_values = np.array(fcf.values, dtype=float)[::-1]
 
         # 복리 증가율 (r) 데이터 피팅
         def compound_growth(x, r, c):
@@ -92,7 +92,9 @@ def app_stock_value():
         data = {
             'Year': np.concatenate([years_actual, future_years]),
             'OCF (Millions)': np.concatenate([ocf_values, future_ocf]) / 1e6,
+            'Estimated OCF (Millions)': fitted_ocf / 1e6,
             'FCF (Millions)': np.concatenate([fcf_values, future_fcf]) / 1e6,
+            'Estimated FCF (Millions)': fitted_fcf / 1e6,
             'Discounted FCF (Millions)': np.concatenate([np.full_like(fcf_values, np.nan), discounted_fcf]) / 1e6,
             'CV (Millions)': np.concatenate([np.full_like(fcf_values, np.nan), cv_values]) / 1e6,
             'Estimated Value (Millions)': np.concatenate([np.full_like(fcf_values, np.nan), estimated_value]) / 1e6,
@@ -161,7 +163,7 @@ def app_stock_value():
                     st.subheader("OCF Graph")
                     ocf_fig, ocf_ax = plt.subplots()
                     ocf_ax.bar(df['Year'][:len(df['OCF (Millions)'][:len(df['OCF (Millions)']) - 10])], df['OCF (Millions)'][:len(df['OCF (Millions)']) - 10], label='Actual OCF', color='lightblue', alpha=0.6)
-                    ocf_ax.plot(df['Year'][-10:], df['OCF (Millions)'][-10:], label='Estimated OCF', color='blue', marker='o')
+                    ocf_ax.plot(df['Year'], df['Estimated OCF (Millions)'], label='Estimated OCF', color='blue', marker='o')
                     ocf_ax.set_title(f"OCF for {ticker}")
                     ocf_ax.set_xlabel("Year")
                     ocf_ax.set_ylabel("OCF (in Millions)")
@@ -175,7 +177,7 @@ def app_stock_value():
                     st.subheader("FCF Graph")
                     fcf_fig, fcf_ax = plt.subplots()
                     fcf_ax.bar(df['Year'][:len(df['FCF (Millions)'][:len(df['FCF (Millions)']) - 10])], df['FCF (Millions)'][:len(df['FCF (Millions)']) - 10], label='Actual FCF', color='salmon', alpha=0.6)
-                    fcf_ax.plot(df['Year'][-10:], df['FCF (Millions)'][-10:], label='Estimated FCF', color='red', marker='o')
+                    fcf_ax.plot(df['Year'], df['Estimated FCF (Millions)'], label='Estimated FCF', color='red', marker='o')
                     fcf_ax.set_title(f"FCF for {ticker}")
                     fcf_ax.set_xlabel("Year")
                     fcf_ax.set_ylabel("FCF (in Millions)")
