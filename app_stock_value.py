@@ -8,7 +8,6 @@ import streamlit as st
 def app_stock_value():
 
     # Function to fetch and process data
-
     def fetch_data(ticker, discount_rate, inflation_rate, growth_model):
         stock = yf.Ticker(ticker)
         cash_flow = stock.cashflow
@@ -126,76 +125,80 @@ def app_stock_value():
         ("Compound Growth", "Linear Growth")
     )
 
-    if ticker:
-        result = fetch_data(ticker, discount_rate, inflation_rate, growth_model)
-        if result:
-            df, current_price, estimated_stock_price, percentage_difference, r_ocf, r_fcf = result
+    # Show 버튼
+    if st.button("Show"):
+        if ticker:
+            result = fetch_data(ticker, discount_rate, inflation_rate, growth_model)
+            if result:
+                df, current_price, estimated_stock_price, percentage_difference, r_ocf, r_fcf = result
 
-            # Create tabs with Stock Price Comparison first
-            tab1, tab2, tab3, tab4, tab5 = st.tabs(["적정 주가 예상하기", "OCF Graph", "FCF Graph", "CV Graph", "데이터 테이블"])
+                # Create tabs with Stock Price Comparison first
+                tab1, tab2, tab3, tab4, tab5 = st.tabs(["적정 주가 예상하기", "OCF Graph", "FCF Graph", "CV Graph", "데이터 테이블"])
 
-            with tab1:
-                st.subheader("Stock Price Comparison")
+                with tab1:
+                    st.subheader("Stock Price Comparison")
 
-                # Display current stock price and estimated stock price
-                st.write(f"**Current Stock Price:** ${current_price:.2f}")
-                st.write(f"**Estimated Stock Price:** ${estimated_stock_price:.2f}")
-                st.write("")
+                    # Display current stock price and estimated stock price
+                    st.write(f"**Current Stock Price:** ${current_price:.2f}")
+                    st.write(f"**Estimated Stock Price:** ${estimated_stock_price:.2f}")
+                    st.write("")
 
-                # Calculate percentage difference
-                if percentage_difference > 0:
-                    st.markdown(f"<h4 style='color:red;'>**{ticker}의 주가는 {percentage_difference:.2f}% 저평가되었습니다.**</h3>", unsafe_allow_html=True)
-                elif percentage_difference < 0:
-                    st.markdown(f"<h4 style='color:red;'>**{ticker}의 주가는 {-percentage_difference:.2f}% 고평가되었습니다.**</h3>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"<h4 style='color:red;'>**{ticker}의 주가는 현재 적정가입니다.**</h3>", unsafe_allow_html=True)
+                    # Calculate percentage difference
+                    if percentage_difference > 0:
+                        st.markdown(f"<h4 style='color:red;'>**{ticker}의 주가는 {percentage_difference:.2f}% 저평가되었습니다.**</h3>", unsafe_allow_html=True)
+                    elif percentage_difference < 0:
+                        st.markdown(f"<h4 style='color:red;'>**{ticker}의 주가는 {-percentage_difference:.2f}% 고평가되었습니다.**</h3>", unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"<h4 style='color:red;'>**{ticker}의 주가는 현재 적정가입니다.**</h3>", unsafe_allow_html=True)
 
-                st.write("")
-                st.write("✪ 지난 4년간의 OCF와 FCF의 복리 상승 추세를 기준으로 계산됩니다.")
-                st.write("✪ 10년 동안 상승 추세를 지속한다고 가정합니다.")
-                st.write("✪ 10년이후, 할인율의 성장 속도로 성장한다고 가정합니다.")
+                    st.write("")
+                    st.write("✪ 지난 4년간의 OCF와 FCF의 복리 상승 추세를 기준으로 계산됩니다.")
+                    st.write("✪ 10년 동안 상승 추세를 지속한다고 가정합니다.")
+                    st.write("✪ 10년이후, 할인율의 성장 속도로 성장한다고 가정합니다.")
 
-            # OCF 그래프 탭
-            with tab2:
-                st.subheader("OCF Graph")
-                ocf_fig, ocf_ax = plt.subplots()
-                ocf_ax.bar(df['Year'][:len(df['OCF (Millions)'][:len(df['OCF (Millions)']) - 10])], df['OCF (Millions)'][:len(df['OCF (Millions)']) - 10], label='Actual OCF', color='lightblue', alpha=0.6)
-                ocf_ax.plot(df['Year'][-10:], df['OCF (Millions)'][-10:], label='Estimated OCF', color='blue', marker='o')
-                ocf_ax.set_title(f"OCF for {ticker}")
-                ocf_ax.set_xlabel("Year")
-                ocf_ax.set_ylabel("OCF (in Millions)")
-                ocf_ax.legend()
-                ocf_ax.grid(True, linestyle = ":")
-                st.pyplot(ocf_fig)
-                st.write(f"**OCF Growth Rate:** {r_ocf*100:.2f}%")
+                # OCF 그래프 탭
+                with tab2:
+                    st.subheader("OCF Graph")
+                    ocf_fig, ocf_ax = plt.subplots()
+                    ocf_ax.bar(df['Year'][:len(df['OCF (Millions)'][:len(df['OCF (Millions)']) - 10])], df['OCF (Millions)'][:len(df['OCF (Millions)']) - 10], label='Actual OCF', color='lightblue', alpha=0.6)
+                    ocf_ax.plot(df['Year'][-10:], df['OCF (Millions)'][-10:], label='Estimated OCF', color='blue', marker='o')
+                    ocf_ax.set_title(f"OCF for {ticker}")
+                    ocf_ax.set_xlabel("Year")
+                    ocf_ax.set_ylabel("OCF (in Millions)")
+                    ocf_ax.legend()
+                    ocf_ax.grid(True, linestyle = ":")
+                    st.pyplot(ocf_fig)
+                    st.write(f"**OCF Growth Rate:** {r_ocf*100:.2f}%")
 
-            # FCF 그래프 탭
-            with tab3:
-                st.subheader("FCF Graph")
-                fcf_fig, fcf_ax = plt.subplots()
-                fcf_ax.bar(df['Year'][:len(df['FCF (Millions)'][:len(df['FCF (Millions)']) - 10])], df['FCF (Millions)'][:len(df['FCF (Millions)']) - 10], label='Actual FCF', color='salmon', alpha=0.6)
-                fcf_ax.plot(df['Year'][-10:], df['FCF (Millions)'][-10:], label='Estimated FCF', color='red', marker='o')
-                fcf_ax.set_title(f"FCF for {ticker}")
-                fcf_ax.set_xlabel("Year")
-                fcf_ax.set_ylabel("FCF (in Millions)")
-                fcf_ax.legend()
-                fcf_ax.grid(True, linestyle = ":")
-                st.pyplot(fcf_fig)
-                st.write(f"**FCF Growth Rate:** {r_fcf*100:.2f}%")
+                # FCF 그래프 탭
+                with tab3:
+                    st.subheader("FCF Graph")
+                    fcf_fig, fcf_ax = plt.subplots()
+                    fcf_ax.bar(df['Year'][:len(df['FCF (Millions)'][:len(df['FCF (Millions)']) - 10])], df['FCF (Millions)'][:len(df['FCF (Millions)']) - 10], label='Actual FCF', color='salmon', alpha=0.6)
+                    fcf_ax.plot(df['Year'][-10:], df['FCF (Millions)'][-10:], label='Estimated FCF', color='red', marker='o')
+                    fcf_ax.set_title(f"FCF for {ticker}")
+                    fcf_ax.set_xlabel("Year")
+                    fcf_ax.set_ylabel("FCF (in Millions)")
+                    fcf_ax.legend()
+                    fcf_ax.grid(True, linestyle = ":")
+                    st.pyplot(fcf_fig)
+                    st.write(f"**FCF Growth Rate:** {r_fcf*100:.2f}%")
 
-            # CV 그래프 탭
-            with tab4:
-                st.subheader("CV Graph")
-                cv_fig, cv_ax = plt.subplots()
-                cv_ax.plot(df['Year'][-10:], df['CV (Millions)'][-10:], label='Continuing Value Trend', color='green', marker='o')
-                cv_ax.set_title(f"Continuing Value for {ticker}")
-                cv_ax.set_xlabel("Year")
-                cv_ax.set_ylabel("CV (in Millions)")
-                cv_ax.legend()
-                cv_ax.grid(True, linestyle = ":")
-                st.pyplot(cv_fig)
+                # CV 그래프 탭
+                with tab4:
+                    st.subheader("CV Graph")
+                    cv_fig, cv_ax = plt.subplots()
+                    cv_ax.plot(df['Year'][-10:], df['CV (Millions)'][-10:], label='Continuing Value Trend', color='green', marker='o')
+                    cv_ax.set_title(f"Continuing Value for {ticker}")
+                    cv_ax.set_xlabel("Year")
+                    cv_ax.set_ylabel("CV (in Millions)")
+                    cv_ax.legend()
+                    cv_ax.grid(True, linestyle = ":")
+                    st.pyplot(cv_fig)
 
-            # Data Table 탭
-            with tab5:
-                st.subheader("Data Table")
-                st.dataframe(df)
+                # Data Table 탭
+                with tab5:
+                    st.subheader("Data Table")
+                    st.dataframe(df)
+
+app_stock_value()
