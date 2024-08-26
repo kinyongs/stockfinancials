@@ -18,7 +18,7 @@ def app_stock_value():
             capex = cash_flow.loc['Capital Expenditure']
             # yfinance에서 총 발행 주식 수 및 현재 주가 가져오기
             total_shares = stock.info['sharesOutstanding']
-            current_price = stock.history(period='1d')['Close'].iloc[-1]
+            current_price = stock.history(period='1m')['Close'].iloc[-1]
         except KeyError as e:
             st.error(f"Error fetching data: {e}")
             return None
