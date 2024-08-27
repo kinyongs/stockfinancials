@@ -307,13 +307,13 @@ def app_financial_data():
                     tabs1 = st.tabs(["매출", "영업이익", "영업 마진", "순이익"])
 
                     with tabs1[0]:
-                        st.plotly_chart(plot_1(financials_df['Total Revenue'], '매출', 'blue', 'red', ticker, stock_data))
+                        st.plotly_chart(plot_1(financials_df['Total Revenue'].dropna(), '매출', 'blue', 'red', ticker, stock_data))
                     with tabs1[1]:
-                        st.plotly_chart(plot_1(financials_df['Operating Income'], '영업 이익', 'green', 'red', ticker, stock_data))
+                        st.plotly_chart(plot_1(financials_df['Operating Income'].dropna(), '영업 이익', 'green', 'red', ticker, stock_data))
                     with tabs1[2]:
-                        st.plotly_chart(plot_2((financials_df['Operating Income'] / financials_df['Total Revenue']) * 100, '영업 마진', 'purple', 'red'))
+                        st.plotly_chart(plot_2((financials_df['Operating Income'].dropna() / financials_df['Total Revenue']) * 100, '영업 마진', 'purple', 'red'))
                     with tabs1[3]:
-                        st.plotly_chart(plot_1(financials_df['Net Income'], '순이익', 'grey', 'red', ticker, stock_data))
+                        st.plotly_chart(plot_1(financials_df['Net Income'].dropna(), '순이익', 'grey', 'red', ticker, stock_data))
                 
                 except KeyError:
                     st.error(f"관련 데이터가 없습니다.")
@@ -322,9 +322,9 @@ def app_financial_data():
                     tabs2 = st.tabs(["자사주 매입", "배당금"])
 
                     with tabs2[0]:
-                        st.plotly_chart(plot_2(-cashflow_df['Repurchase Of Capital Stock'], '자사주 매입', 'brown', 'red'))
+                        st.plotly_chart(plot_2(-cashflow_df['Repurchase Of Capital Stock'].dropna(), '자사주 매입', 'brown', 'red'))
                     with tabs2[1]:
-                        st.plotly_chart(plot_2(-cashflow_df['Cash Dividends Paid'], '배당금', 'black', 'red'))
+                        st.plotly_chart(plot_2(-cashflow_df['Cash Dividends Paid'].dropna(), '배당금', 'black', 'red'))
                 except KeyError:
                     st.error(f"관련 데이터가 없습니다.")    
                 
@@ -332,9 +332,9 @@ def app_financial_data():
                     tabs3 = st.tabs(["CAPEX", "주식 수"])
 
                     with tabs3[0]:
-                        st.plotly_chart(plot_2(-cashflow_df['Capital Expenditure'], 'CAPEX', 'cyan', 'red'))
+                        st.plotly_chart(plot_2(-cashflow_df['Capital Expenditure'].dropna(), 'CAPEX', 'cyan', 'red'))
                     with tabs3[1]:
-                        st.plotly_chart(plot_2(financials_df['Diluted Average Shares'], '주식 수', 'magenta', 'red'))
+                        st.plotly_chart(plot_2(financials_df['Diluted Average Shares'].dropna(), '주식 수', 'magenta', 'red'))
                 except KeyError:
                     st.error(f"관련 데이터가 없습니다.")
 
@@ -342,9 +342,9 @@ def app_financial_data():
                     tabs4 = st.tabs(["EPS", "DPS"])
 
                     with tabs4[0]:
-                        st.plotly_chart(plot_1(financials_df['Diluted EPS'], 'EPS', 'blue', 'red', ticker, stock_data))
+                        st.plotly_chart(plot_1(financials_df['Diluted EPS'].dropna(), 'EPS', 'blue', 'red', ticker, stock_data))
                     with tabs4[1]:
-                        st.plotly_chart(plot_1(-cashflow_df['Cash Dividends Paid'] / financials_df['Diluted Average Shares'], 'DPS', 'green', 'red', ticker, stock_data))
+                        st.plotly_chart(plot_1(-cashflow_df['Cash Dividends Paid'].dropna() / financials_df['Diluted Average Shares'], 'DPS', 'green', 'red', ticker, stock_data))
                 except KeyError:
                     st.error(f"관련 데이터가 없습니다.")
 
@@ -352,18 +352,18 @@ def app_financial_data():
                     tabs5 = st.tabs(["PER", "PBR", "ROE"])
 
                     with tabs5[0]:
-                        st.plotly_chart(plot_2(financials_df['주가'] / financials_df['Diluted EPS'], 'PER', 'blue', 'red'))
+                        st.plotly_chart(plot_2(financials_df['주가'].dropna() / financials_df['Diluted EPS'].dropna(), 'PER', 'blue', 'red'))
                     with tabs5[1]:
-                        st.plotly_chart(plot_2(balance_sheet_df['주가'] / (balance_sheet_df['Stockholders Equity'] / financials_df['Diluted Average Shares']), 'PBR', 'green', 'red'))
+                        st.plotly_chart(plot_2(balance_sheet_df['주가'].dropna() / (balance_sheet_df['Stockholders Equity'].dropna() / financials_df['Diluted Average Shares'].dropna()), 'PBR', 'green', 'red'))
                     with tabs5[2]:
-                        st.plotly_chart(plot_2((financials_df['Net Income'] / balance_sheet_df['Stockholders Equity']) * 100, 'ROE', 'orange', 'red'))
+                        st.plotly_chart(plot_2((financials_df['Net Income'] / balance_sheet_df['Stockholders Equity'].dropna()) * 100, 'ROE', 'orange', 'red'))
                 except KeyError:
                     st.error(f"관련 데이터가 없습니다.")
                 
                 try:    
                     tabs6 = st.tabs(["Owner Earning", "목표 가격"])
                     with tabs6[0]:
-                        st.plotly_chart(plot_1(financials_df['Net Income'] + cashflow_df['Depreciation And Amortization'] + cashflow_df['Capital Expenditure'], 'Owner Earning', 'purple', 'red', ticker, stock_data))
+                        st.plotly_chart(plot_1(financials_df['Net Income'].dropna() + cashflow_df['Depreciation And Amortization'].dropna() + cashflow_df['Capital Expenditure'].dropna(), 'Owner Earning', 'purple', 'red', ticker, stock_data))
                     with tabs6[1]:
                         financial_data = get_financial_data(ticker)
                         st.plotly_chart(plot_target_prices(financial_data, ticker))
