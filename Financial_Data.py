@@ -9,6 +9,7 @@ from app_sp500 import app_sp500 as sp500_app
 from app_Summary import app_Summary as summary_app
 from app_Monthly_Investment import app_Monthly_Investment as Monthly_Investment_app
 from app_stock_value import app_stock_value as stock_value_app
+from app_stock_value2 import app_stock_value2 as stock_value_app2
 
 PAGES = {
     "홈": home_app,
@@ -16,7 +17,8 @@ PAGES = {
     "S&P 500과 매크로 데이터 분석": sp500_app,
     "개별 주식 분석": single_stock_app,
     "주가 비교 분석": double_stock_app,
-    "기업 적정 주가 추정":stock_value_app,
+    "기업 적정 주가 추정(FCF 기반)":stock_value_app,
+    "기업 적정 주가 추정(ROE 기반)":stock_value_app2,
     "기업 재무 데이터 분석": financial_data_app,
     "적립식 투자 시뮬레이션": Monthly_Investment_app
 }
