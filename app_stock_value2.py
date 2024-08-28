@@ -59,7 +59,7 @@ def app_stock_value2():
     ticker = st.text_input("티커(ticker) 입력 (e.g., MSFT):", "MSFT")
 
     # N년 후와 목표 수익률 입력
-    N = st.number_input("투자 기간 (N):", value=20, min_value=1)
+    N = st.number_input("투자 기간 (N):", value=10, min_value=1)
     target_return = st.number_input("목표 수익률 (e.g., 10%):", value=10.0, min_value=0.0) / 100
 
     # Show 버튼 추가
