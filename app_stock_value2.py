@@ -8,27 +8,27 @@ def app_stock_value2():
     # Function to fetch and process data
     def fetch_stock_data(ticker):
         stock = yf.Ticker(ticker)
-        info = stock.info
+        financials_df = stock.financials
+        balance_sheet_df = stock.balance_sheet
 
         # 현재 BPS와 현재 주가
+        info = stock.info
         current_bps = info.get('bookValue', np.nan)
         current_price = stock.history(period='1d')['Close'].iloc[-1]
 
         try:
-            # ROA와 D/E ratio를 이용해 ROE 추정
-            roa = info.get('returnOnAssets', np.nan)  # Return on Assets
-            debt_to_equity = info.get('debtToEquity', np.nan) / 100  # D/E Ratio
+            # ROE 계산
+            roe_series = financials_df.loc['Net Income'].dropna() / balance_sheet_df.loc['Stockholders Equity'].dropna()
+            average_roe = roe_series.mean()
 
-            if np.isnan(roa) or np.isnan(debt_to_equity):
-                raise ValueError("Could not retrieve ROA or Debt to Equity data.")
+            if np.isnan(average_roe):
+                raise ValueError("Could not retrieve sufficient data to calculate ROE.")
 
-            # ROE 추정
-            average_roe = roa * (1 + debt_to_equity)
         except KeyError as e:
             st.error(f"Error fetching data: {e}")
             return None
 
-        return current_bps, current_price, average_roe
+        return current_bps, current_price, average_roe, roe_series
 
     # Function to calculate future stock price and percentage difference
     def calculate_future_price(current_bps, current_price, average_roe, N, target_return):
@@ -65,10 +65,8 @@ def app_stock_value2():
     # Show 버튼 추가
     if st.button("Show Results"):
         if ticker:
-            stock_data = fetch_stock_data(ticker)
-            if stock_data:
-                current_bps, current_price, average_roe = stock_data
-
+            current_bps, current_price, average_roe, roe_series = fetch_stock_data(ticker)
+            if current_bps is not None:
                 # 미래 주가 계산
                 future_price, percentage_of_future_price = calculate_future_price(current_bps, current_price, average_roe, N, target_return)
 
@@ -79,8 +77,8 @@ def app_stock_value2():
                 target_return_df = generate_target_return_prices(current_bps, average_roe, N)
 
                 # Create tabs
-                tab1, tab2, tab3, tab4 = st.tabs(["결과", "투자기간별 적정 주가", "기대수익률에 따른 적정 주가 변화", "수식"])
-                
+                tab1, tab2, tab3, tab4, tab5 = st.tabs(["결과", "ROE 시각화", "투자기간별 적정 주가", "기대수익률에 따른 적정 주가 변화", "수식"])
+
                 with tab1:
                     st.subheader("Results")
                     st.write(f"**현재 주가:** ${current_price:.2f}")
@@ -97,8 +95,21 @@ def app_stock_value2():
                         st.markdown(f"<h4 style='color:red;'>**{ticker} stock is currently at its fair value.**</h4>", unsafe_allow_html=True)
 
                 with tab2:
+                    st.subheader(f"ROE 데이터 시각화")
+                    
+                    # ROE 데이터를 시각화
+                    fig, ax = plt.subplots()
+                    roe_series.plot(kind='bar', ax=ax, color='skyblue')
+                    ax.axhline(y=average_roe, color='red', linestyle='--', label=f'Avg. ROE: {average_roe:.2%}')
+                    ax.set_xlabel("Period")
+                    ax.set_ylabel("ROE")
+                    ax.set_title(f"{ticker} ROE")
+                    ax.legend()
+                    st.pyplot(fig)
+                
+                
+                with tab3:
                     st.subheader(f"Estimated Future Prices Over {N} Years")
-                    # st.dataframe(future_price_df)
                     
                     # Visualization of future prices by year
                     fig, ax = plt.subplots()
@@ -109,9 +120,8 @@ def app_stock_value2():
                     ax.grid(True, linestyle=':', linewidth=0.5)
                     st.pyplot(fig)
 
-                with tab3:
+                with tab4:
                     st.subheader(f"Future Prices by Target Return for {N} Years")
-                    # st.dataframe(target_return_df)
                     
                     # Visualization of future prices by target return
                     fig, ax = plt.subplots()
@@ -122,7 +132,7 @@ def app_stock_value2():
                     ax.grid(True, linestyle=':', linewidth=0.5)
                     st.pyplot(fig)
 
-                with tab4:
+                with tab5:
                     st.subheader("계산 공식")
 
                     st.latex(r'''
@@ -135,4 +145,15 @@ def app_stock_value2():
                     st.write("- **목표 수익률**: 목표하는 수익률")
                     st.write("- **N**: 투자 기간(년)")
 
-
+                with tab5:
+                    st.subheader(f"ROE 데이터 시각화")
+                    
+                    # ROE 데이터를 시각화
+                    fig, ax = plt.subplots()
+                    roe_series.plot(kind='bar', ax=ax, color='skyblue')
+                    ax.axhline(y=average_roe, color='red', linestyle='--', label=f'Avg. ROE: {average_roe:.2%}')
+                    ax.set_xlabel("Period")
+                    ax.set_ylabel("ROE")
+                    ax.set_title(f"{ticker} ROE")
+                    ax.legend()
+                    st.pyplot(fig)
