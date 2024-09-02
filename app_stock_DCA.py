@@ -89,7 +89,7 @@ def app_stock_DCA() :
                 results = calculate_dca(stock_data, start_year, investment_period, monthly_investment, reinvest_dividends)
 
                 # 탭 생성
-                tab1, tab2, tab3 = st.tabs(["투자금 및 자산", "배당금 변화", "보유 주식 수"])
+                tab1, tab2, tab3, tab4 = st.tabs(["투자금 및 자산", "배당금 변화", "보유 주식 수", "월별 투자 성과"])
 
                 with tab1:
                     st.subheader("투자금 및 자산 가치 ($)")
@@ -108,3 +108,12 @@ def app_stock_DCA() :
                     st.subheader("시간에 따른 보유 주식 수")
                     fig = go.Figure([go.Bar(x=results["날짜"], y=results["보유 주식 수"], name="보유 주식 수")])
                     st.plotly_chart(fig)
+
+                with tab4:
+                    st.subheader("월별 투자 성과")
+                    # 날짜를 년월로 변환하여 그룹화
+                    results['년월'] = results['날짜'].dt.to_period('M')
+                    monthly_results = results.groupby('년월').last().reset_index()
+
+                    # 월별 투자 성과를 테이블로 표시
+                    st.table(monthly_results[["년월", "투자 금액", "포트폴리오 가치", "보유 주식 수"]])
