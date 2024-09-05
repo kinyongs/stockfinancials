@@ -109,7 +109,7 @@ def app_Summary():
         if selected_year:
             ax2 = ax1.twinx()  # Create a second y-axis sharing the same x-axis
             selected_year_data = sp500_data[sp500_data['Year'] == selected_year].groupby('DayOfYear')['GeometricReturn'].prod().cumprod() - 1
-            ax2.plot(selected_year_data.index, selected_year_data.values * 100, label=f'{selected_year}', linewidth=2, color='red')
+            ax2.plot(selected_year_data.index, selected_year_data.values * 100, label=f'{selected_year}', linewidth=2, color='darkred')
 
             # Set second y-axis label
             ax2.set_ylabel(f'{selected_year} Cumulative Geometric Return (%)', color='darkred')
