@@ -27,6 +27,15 @@ def app_single_stock():
         data['Date'] = pd.to_datetime(data['Date'])
         return data
 
+    def get_sp500_data():
+        sp500 = yf.Ticker("^GSPC")
+        sp500_data = sp500.history(period="max")
+        sp500_data.index = pd.to_datetime(sp500_data.index)
+        sp500_data.reset_index(inplace=True)
+        sp500_data['Date'] = pd.to_datetime(sp500_data['Date'])
+        return sp500_data
+
+
     def cagr(day, a, b):
         return a * (1 + b) ** day
 
@@ -188,6 +197,21 @@ def app_single_stock():
     if submit_button and ticker:
         try:
             stock_data = get_stock_data(ticker)
+            # S&P 500 데이터를 불러옴
+            sp500_data = get_sp500_data()
+
+            # 주식 데이터와 S&P 500 데이터를 주식의 시작 날짜부터 필터링
+            start_date = stock_data['Date'].min()
+            sp500_data = sp500_data[sp500_data['Date'] >= start_date].copy()
+
+            # 두 데이터가 같은 날짜를 기준으로 매칭되도록 결합
+            merged_data = pd.merge(stock_data[['Date', 'Close']], sp500_data[['Date', 'Close']], on='Date', suffixes=('_Stock', '_SP500'))
+
+            # 주가를 S&P 500 지수로 나눈 값을 구하고, 초기값으로 스케일링
+            merged_data['Relative_Performance'] = merged_data['Close_Stock'] / merged_data['Close_SP500']
+            merged_data['Scaled_Relative_Performance'] = merged_data['Relative_Performance'] / merged_data['Relative_Performance'].iloc[0]
+
+
             if stock_data.empty:
                 st.error("입력된 티커 기호에 대한 데이터를 찾을 수 없습니다. 기호를 확인하고 다시 시도하세요.")
             else:
@@ -206,29 +230,34 @@ def app_single_stock():
 
                 st.plotly_chart(price_plot, use_container_width=True)
                 st.plotly_chart(drawdown_plot, use_container_width=True)
+                # 주식의 S&P 500 대비 상대 성과를 시각화하는 그래프 생성
+                fig = go.Figure()
+
+                # 상대 성과 데이터 추가
+                fig.add_trace(go.Scatter(x=merged_data['Date'], y=merged_data['Scaled_Relative_Performance'], mode='lines', name=f'{ticker} / S&P 500', line=dict(color='purple')))
+
+                # 그래프 레이아웃 설정
+                fig.update_layout(
+                    title=f"{ticker} / S&P 500 상대 성과",
+                    xaxis_title="날짜",
+                    yaxis_title="상대 성과 (초기값 = 1)",
+                    legend=dict(x=0, y=1, xanchor='left', yanchor='top')
+
+                )
+                fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
+                fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGray', griddash='dot')
+
+                # 그래프 출력
+                st.plotly_chart(fig, use_container_width=True)
+
+
+
 
                 dividend_plot = plot_dividends_and_cagr(stock_data)
                 if dividend_plot:
                     st.plotly_chart(dividend_plot, use_container_width=True)
                 
                 st.plotly_chart(plot_inverted_stock_data(stock_data, ticker), use_container_width=True)
-
-                # 뉴스 데이터를 가져와서 테이블로 표시
-                stock = yf.Ticker(ticker)
-                news = stock.news
-
-                if news:
-                    st.subheader("최신 뉴스")
-                    news_df = pd.DataFrame(news)
-                    news_df['publish_time'] = news_df['providerPublishTime'].apply(lambda x: datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S'))
-                    news_df = news_df[['title', 'link', 'publish_time']]
-                    news_df.columns = ['제목', '링크', '게시일']
-                    
-                    # 뉴스 데이터를 마크다운 형식으로 표시
-                    for index, row in news_df.iterrows():
-                        st.markdown(f"**[{row['제목']}]({row['링크']})**  \n게시일: {row['게시일']}")
-                else:
-                    st.warning("해당 티커에 대한 뉴스를 찾을 수 없습니다.")
                 
         except Exception as e:
             st.error(f"오류가 발생했습니다: {e}. 티커 기호를 확인하고 다시 시도하세요.")
