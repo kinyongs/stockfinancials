@@ -14,7 +14,7 @@ def app_stock_value2():
         # 현재 BPS와 현재 주가
         info = stock.info
         current_bps = info.get('bookValue', np.nan)
-        current_price = stock.history(period='1d')['Close'].iloc[-1]
+        current_price = stock.history(period='1mo')['Close'].iloc[-1]
 
         try:
             # ROE 계산
