@@ -144,16 +144,3 @@ def app_stock_value2():
                     st.write("- **평균 ROE**: 평균 자기자본이익률")
                     st.write("- **목표 수익률**: 목표하는 수익률")
                     st.write("- **N**: 투자 기간(년)")
-
-                with tab5:
-                    st.subheader(f"ROE 데이터 시각화")
-                    
-                    # ROE 데이터를 시각화
-                    fig, ax = plt.subplots()
-                    roe_series.plot(kind='bar', ax=ax, color='skyblue')
-                    ax.axhline(y=average_roe, color='red', linestyle='--', label=f'Avg. ROE: {average_roe:.2%}')
-                    ax.set_xlabel("Period")
-                    ax.set_ylabel("ROE")
-                    ax.set_title(f"{ticker} ROE")
-                    ax.legend()
-                    st.pyplot(fig)
