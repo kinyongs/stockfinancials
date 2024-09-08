@@ -21,11 +21,30 @@ def app_single_stock():
 
     def get_stock_data(ticker):
         stock = yf.Ticker(ticker)
-        data = stock.history(period="max")
+
+        # 주가 데이터를 yf.download를 통해 가져오기 (1900-01-01 ~ 2040-12-31)
+        data = yf.download(ticker, start="1900-01-01", end="2040-12-31")
         data.index = pd.to_datetime(data.index)
         data.reset_index(inplace=True)
-        data['Date'] = pd.to_datetime(data['Date'])
-        return data
+        
+        # 주가 데이터의 'Date' 열에서 시간대 정보 제거
+        data['Date'] = data['Date'].dt.tz_localize(None)
+
+        # 배당금 데이터는 stock.history로 가져오기
+        dividends_data = stock.history(period="max")[['Dividends']]
+        dividends_data.index = pd.to_datetime(dividends_data.index)
+        dividends_data.reset_index(inplace=True)
+        
+        # 배당금 데이터의 'Date' 열에서 시간대 정보 제거
+        dividends_data['Date'] = dividends_data['Date'].dt.tz_localize(None)
+
+        # 배당금 데이터를 주가 데이터에 병합
+        merged_data = pd.merge(data, dividends_data, on='Date', how='left')
+        merged_data['Dividends'].fillna(0, inplace=True)  # 배당금이 없는 날짜는 0으로 채움
+
+        return merged_data
+
+
 
     def get_sp500_data():
         sp500 = yf.Ticker("^GSPC")
@@ -33,6 +52,7 @@ def app_single_stock():
         sp500_data.index = pd.to_datetime(sp500_data.index)
         sp500_data.reset_index(inplace=True)
         sp500_data['Date'] = pd.to_datetime(sp500_data['Date'])
+        sp500_data['Date'] = sp500_data['Date'].dt.tz_localize(None)
         return sp500_data
 
 
