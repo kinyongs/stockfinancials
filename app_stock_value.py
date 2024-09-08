@@ -113,7 +113,7 @@ def app_stock_value():
         return df, current_price, estimated_stock_price, percentage_difference, r_ocf, r_fcf
 
     # Streamlit UI
-    st.title("Stock Value Estimation")
+    st.title("Stock Value Estimation (FCF 기반)")
 
     # 주식 티커 입력
     ticker = st.text_input("주식 티커(ticker) 입력 (e.g., MSFT):", "MSFT")
