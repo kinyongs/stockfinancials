@@ -35,12 +35,7 @@ selected_page = st.selectbox("페이지 선택", options=list(PAGES.keys()))
 page = PAGES[selected_page]
 page()
 
-components.html(
-    """
-    <head>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3899080320104517"
-     crossorigin="anonymous"></script>
-     </head>
-    """
-)
+HtmlFile = open("test.html", 'r', encoding='utf-8')
+source_code = HtmlFile.read()
+print(source_code)
+components.html(source_code, height=600)
