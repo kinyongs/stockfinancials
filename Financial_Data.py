@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 # 각 페이지를 정의한 딕셔너리
 from app_single_stock import app_single_stock as single_stock_app
@@ -33,3 +34,21 @@ selected_page = st.selectbox("페이지 선택", options=list(PAGES.keys()))
 # 선택된 페이지 로드
 page = PAGES[selected_page]
 page()
+
+# AdSense Script 삽입
+adsense_code = """
+<head>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-3899080320104517"
+     data-ad-slot="3899080320104517"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+</head>
+"""
+
+components.html(adsense_code)
