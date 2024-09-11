@@ -37,8 +37,10 @@ page()
 
 components.html(
     """
+    <head>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3899080320104517"
      crossorigin="anonymous"></script>
+     </head>
     """
 )
