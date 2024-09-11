@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 
 # 각 페이지를 정의한 딕셔너리
 from app_single_stock import app_single_stock as single_stock_app
@@ -34,8 +33,3 @@ selected_page = st.selectbox("페이지 선택", options=list(PAGES.keys()))
 # 선택된 페이지 로드
 page = PAGES[selected_page]
 page()
-
-HtmlFile = open("test.html", 'r', encoding='utf-8')
-source_code = HtmlFile.read()
-print(source_code)
-components.html(source_code, height=600)
