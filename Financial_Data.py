@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 # 각 페이지를 정의한 딕셔너리
 from app_single_stock import app_single_stock as single_stock_app
