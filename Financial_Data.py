@@ -33,3 +33,11 @@ selected_page = st.selectbox("페이지 선택", options=list(PAGES.keys()))
 # 선택된 페이지 로드
 page = PAGES[selected_page]
 page()
+
+components.html(
+    """
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3899080320104517"
+     crossorigin="anonymous"></script>
+    """
+)
